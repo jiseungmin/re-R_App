@@ -118,28 +118,42 @@ function MenuItem({ iconSource, label, onPress }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+ header: {
+  width: '100%',
+  height: 150,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: 0,
+  paddingTop: 50,
+  // flexWrap: 'nowrap' (기본값)
+},
 
-  header: {
-    width: '100%',
-    height:180,
-    aspectRatio: 375 / 180,   // (이미지 종횡비)
-    flexDirection: 'row',     // ← 좌우 배치
-    justifyContent: 'space-between',  // ← 양끝 스페이스
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginLeft: 20,   // 왼쪽 가장자리에서 띄우기
+  marginRight: 10,  // 오른쪽 텍스트와 간격
+},
+
+joinDate: {
+  color: '#fff',
+  fontSize: 14,
+  marginTop: 4,
+  flexShrink: 1,
+  maxWidth: SCREEN_WIDTH * 0.4,
+  textAlign: 'right',
+  marginRight: 20,  // 오른쪽 가장자리에서 띄우기
+},
+
   headerBg: {
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
    profileImg: {
-    width: 72,
-    height: 72,
+    width: 50,
+    height: 50,
     borderRadius: 36,
     backgroundColor: '#fff',
     marginRight: 12,  // 이름과 간격
@@ -149,8 +163,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',     // ← 가로 배치
     alignItems: 'center',     // ← 세로 중앙 정렬
   },
-  userName: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
-  joinDate: { color: '#fff', fontSize: 14, marginTop: 4 },
+  userName: { color: '#fff', fontSize: 24},
 
   content: {
     paddingBottom: 32,
@@ -164,35 +177,36 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
     marginHorizontal: 20,
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 5,
   },
 
   resultSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 20,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginHorizontal: 20,
+  flexWrap: 'wrap',     // 여러 줄로 넘칠 시 줄바꿈 허용
   },
+
   card: {
-    width: 200,
-    height: 200,
+    width: (SCREEN_WIDTH - 60) / 2,  // 좌우 마진 포함해 2개 카드 균등 분할
+    height: (SCREEN_WIDTH - 60) / 2, // 정사각형 크기, 필요시 고정 높이 조절
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: 'hidden',   // 카드 아래 간격
+    marginHorizontal: 2,
   },
+
   cardBg: {
     width: '100%',
     height: '100%',
-    padding: 10,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  cardRadius: {
-    borderRadius: 12,
-  },
+
   cardTextOverlay: {
     position: 'absolute',
     bottom: 15,
@@ -201,7 +215,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
+    paddingHorizontal: 5,  // 텍스트가 끝에 붙는 문제 완화
   },
+
+  cardRadius: {
+    borderRadius: 12,
+  },
+
 
   menu: { marginTop: -15 },
   menuItem: {

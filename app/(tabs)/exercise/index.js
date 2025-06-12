@@ -20,15 +20,23 @@ export default function ExerciseScreen() {
         style={styles.header}
         imageStyle={styles.headerBgImage}
       >
-        <TouchableOpacity>
-          <MaterialIcons name="menu" size={28} color="#fff" />
-        </TouchableOpacity>
+        {/* 메뉴 아이콘 + 텍스트 그룹 */}
+        <View style={styles.menuWithText}>
+          <TouchableOpacity>
+            <ImageBackground
+              source={require('../../../assets/images/그룹 104.png')}
+              style={styles.menuIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
 
-        <Text style={styles.headerText}>
-          아버님의,{'\n'}건강한 하루를 응원해요!
-        </Text>
+          <Text style={styles.headerText}>아버님의, {'\n'} 건강한 하루를 응원해요!</Text>
+        </View>
 
-        {/* 사람 일러스트 (헤더 뒤 배경 위에 겹침) */}
+        {/* 빈 공간 주거나 flex로 벌리기 위해 */}
+        <View style={{ flex: 1 }} />
+
+        {/* 사람 일러스트 */}
         <Image
           source={require('../../../assets/images/group3945.png')}
           style={styles.headerIllustration}
@@ -58,8 +66,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    height: 140,              // 배경 이미지 높이
-    paddingHorizontal: 20,    // 좌우 여백
+    height: 180,              // 배경 이미지 높이
     paddingTop: 16,           // SafeAreaView 상단 높이 고려
     flexDirection: 'row',
     alignItems: 'center',
@@ -72,16 +79,24 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 24,
-    marginLeft: 12,
-    fontWeight: '600',
+    marginLeft: 20,
   },
   headerIllustration: {
-    width: 60,
-    height: 60,
+    width: 110,
+    height: 110,
     // 필요하다면 위치 미세 조정
-    marginTop: 10,
+    marginRight: 10,
+    marginTop: 40,
+  },
+  menuIcon: {
+    width: 20,
+    height: 20,
+    // 필요하다면 위치 미세 조정
+    marginLeft: 20,
+    marginTop: 50,
+    marginBottom:15
   },
   mainImg: {
     width: '100%',
