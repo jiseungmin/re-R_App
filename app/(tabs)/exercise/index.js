@@ -10,8 +10,9 @@ import {
   ImageBackground,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-
+import { useRouter } from 'expo-router';
 export default function ExerciseScreen() {
+  const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -22,7 +23,9 @@ export default function ExerciseScreen() {
       >
         {/* 메뉴 아이콘 + 텍스트 그룹 */}
         <View style={styles.menuWithText}>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/menu')}
+          >
             <ImageBackground
               source={require('../../../assets/images/그룹 104.png')}
               style={styles.menuIcon}

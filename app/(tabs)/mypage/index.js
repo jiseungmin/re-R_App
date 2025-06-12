@@ -11,11 +11,13 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function MyPage() {
+  const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -83,7 +85,7 @@ export default function MyPage() {
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5801.png')}
             label="자주 묻는 질문"
-            onPress={() => {}}
+            onPress={() => router.push('/faq')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5868.png')}
