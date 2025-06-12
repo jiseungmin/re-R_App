@@ -36,14 +36,14 @@ export default function Menu() {
           onPress={() => router.back()}
         >
           <Image
-            source={require('../../assets/images/그룹 189.png')}
+            source={require('../../assets/images/그룹 3868.png')}
             style={styles.closeIcon}
           />
         </TouchableOpacity>
 
         {/* 프로필 아이콘 */}
         <Image
-          source={require('../../assets/images/그룹 5322.png')}
+          source={require('../../assets/images/profile_icon.png')}
           style={styles.profileImg}
         />
 
@@ -85,6 +85,7 @@ export default function Menu() {
             style={styles.itemArrow}
           />
         </TouchableOpacity>
+        <View style={styles.divider} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -120,8 +121,8 @@ const styles = StyleSheet.create({
   },
   profileImg: {
     marginTop: 60,
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: 36,
     backgroundColor: '#fff',
   },
@@ -138,13 +139,13 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 25,
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
   itemIcon: {
-    width: 64,
-    height: 64,
+    width: 74,
+    height: 74,
     borderRadius: 8,
     marginRight: 10,
     resizeMode: 'contain',
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   divider: {
-    height: StyleSheet.hairlineWidth,
+    height: 2,
     backgroundColor: '#ddd',
     marginHorizontal: 20,
   },

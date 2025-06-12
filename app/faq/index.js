@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
   header: {
-    height: 56,
+    height: 90,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
 
   list: {
-    paddingVertical: 8,
+    paddingVertical: 2,
   },
   item: {
     borderBottomWidth: StyleSheet.hairlineWidth,
