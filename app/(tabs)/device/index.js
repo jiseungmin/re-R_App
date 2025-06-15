@@ -1,27 +1,19 @@
-// app/device/index.js
 import React, { useState, useRef } from 'react';
 import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  Image,
-  Animated,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
+  SafeAreaView, View, Text, StyleSheet, ImageBackground, Image,
+  Animated, TouchableOpacity, FlatList, Dimensions
 } from 'react-native';
 import { Stack } from 'expo-router';
+import BleScanner from '../../../components/bluetooth/BleScanner'; // ⬅ 추가
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function Device() {
-  const [devices, setDevices] = useState([
-    { id: '1', name: 'BLE_NAME', address: 'CF:D6:B5:27:FD:2E' },
-  ]);
+  const [devices, setDevices] = useState([]);
+  const [scanning, setScanning] = useState(false);
 
   const spinValue = useRef(new Animated.Value(0)).current;
+
   const runStutterSpin = () => {
     spinValue.setValue(0);
     Animated.sequence([
@@ -49,10 +41,7 @@ export default function Device() {
       resizeMode="stretch"
     >
       <View style={styles.deviceCard}>
-        <Image
-          source={require('../../../assets/images/그룹 4321.png')}
-          style={styles.deviceIcon}
-        />
+        <Image source={require('../../../assets/images/그룹 4321.png')} style={styles.deviceIcon} />
         <View style={styles.deviceInfo}>
           <Text style={styles.deviceName}>{item.name}</Text>
           <Text style={styles.deviceAddress}>{item.address}</Text>
@@ -65,21 +54,20 @@ export default function Device() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* 1) 상단 헤더 */}
+      {/* 헤더 */}
       <ImageBackground
         source={require('../../../assets/images/그룹 5312.png')}
         style={styles.header}
         imageStyle={styles.headerBg}
         resizeMode="cover"
       >
-        {/* 왼쪽: title + button */}
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>기기정보</Text>
           <TouchableOpacity
             style={styles.refreshButton}
             onPress={() => {
               runStutterSpin();
-              setDevices([...devices]);
+              setScanning(true); // BLE 검색 트리거
             }}
           >
             <Animated.Image
@@ -89,15 +77,10 @@ export default function Device() {
             <Text style={styles.refreshText}>다시 검색</Text>
           </TouchableOpacity>
         </View>
-        {/* 오른쪽: phone icon */}
-        <Image
-          source={require('../../../assets/images/mobile.png')} // 실제 핸드폰 아이콘 경로로 변경
-          style={styles.phoneIcon}
-          resizeMode="contain"
-        />
+        <Image source={require('../../../assets/images/mobile.png')} style={styles.phoneIcon} resizeMode="contain" />
       </ImageBackground>
 
-      {/* 2) 리스트 배경 */}
+      {/* 기기 리스트 */}
       <ImageBackground
         source={require('../../../assets/images/사각형 2154.png')}
         style={styles.listBg}
@@ -111,9 +94,18 @@ export default function Device() {
           contentContainerStyle={styles.listContent}
         />
       </ImageBackground>
+
+      {/* BLE 검색 컴포넌트 (비시각적) */}
+      {scanning && (
+        <BleScanner onDevicesFound={(foundDevices) => {
+          setDevices(foundDevices);
+          setScanning(false);
+        }} />
+      )}
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
@@ -208,3 +200,4 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
+

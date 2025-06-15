@@ -33,6 +33,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      "react-native-ble-plx",
+      [
+        "react-native-permissions",
+        {
+          "permissions": ["BLUETOOTH", "BLUETOOTH_CONNECT", "ACCESS_FINE_LOCATION"]
+        }
       ]
     ],
     "experiments": {
