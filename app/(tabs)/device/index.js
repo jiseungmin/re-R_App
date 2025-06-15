@@ -16,7 +16,7 @@ import { Stack } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function DevicePage() {
+export default function Device() {
   const [devices, setDevices] = useState([
     { id: '1', name: 'BLE_NAME', address: 'CF:D6:B5:27:FD:2E' },
   ]);

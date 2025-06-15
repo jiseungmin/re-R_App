@@ -9,9 +9,8 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-export default function ExerciseScreen() {
+export default function Exercise() {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
