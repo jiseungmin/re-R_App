@@ -98,7 +98,17 @@ export default function Device() {
       {/* BLE 검색 컴포넌트 (비시각적) */}
       {scanning && (
         <BleScanner onDevicesFound={(foundDevices) => {
-          setDevices(foundDevices);
+          // foundDevices가 배열일 때는 기존 코드 유지
+          // 단일 기기일 경우 배열에 추가
+          if (Array.isArray(foundDevices)) {
+            setDevices(foundDevices);
+          } else {
+            setDevices(prevDevices => {
+              const exists = prevDevices.find(d => d.id === foundDevices.id);
+              if (exists) return prevDevices;
+              return [...prevDevices, foundDevices];
+            });
+          }
           setScanning(false);
         }} />
       )}
