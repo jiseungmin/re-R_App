@@ -54,7 +54,10 @@ export default function Menu() {
       {/* 2) 리스트 */}
        <ScrollView contentContainerStyle={styles.content}>
         {/* 첫 번째 항목 */}
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => router.push('/menu/checkMyHealth/HealthIntroCard')} // ← 이 부분 추가
+        >
           <Image
             source={require('../../assets/images/그룹 5400.png')}
             style={styles.itemIcon}
@@ -68,6 +71,7 @@ export default function Menu() {
             style={styles.itemArrow}
           />
         </TouchableOpacity>
+
 
         <View style={styles.divider} />
 
