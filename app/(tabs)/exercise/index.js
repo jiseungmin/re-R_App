@@ -32,7 +32,7 @@ export default function Exercise() {
             />
           </TouchableOpacity>
 
-          <Text style={styles.headerText}>아버님의, {'\n'} 건강한 하루를 응원해요!</Text>
+          <Text style={styles.headerText}>아버님의, {'\n'}건강한 하루를 응원해요!</Text>
         </View>
 
         {/* 빈 공간 주거나 flex로 벌리기 위해 */}

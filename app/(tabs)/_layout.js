@@ -6,57 +6,84 @@ import { Tabs } from 'expo-router';
 export default function TabLayout() {
   return (
     <Tabs
-      // initialRouteName 없이 두면 선언 순서대로 첫 탭이 기본으로 선택됩니다
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#4f6dff',
         tabBarInactiveTintColor: '#999',
         tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: {
-          backgroundColor: '#fff',  // 탭바 배경 흰색
+          backgroundColor: '#fff',
           height: 100,
         },
       }}
-    >
-      {/* 1) 운동하기 (맨 왼쪽) */}
+    >  
+
       <Tabs.Screen
-        name="exercise"
+        name="exercise/index"
         options={{
           tabBarLabel: '운동하기',
-          tabBarIcon: ({ size }) => (
+          tabBarIcon: ({ focused, size }) => (
             <Image
-              source={require('../../assets/images/그룹 3878.png')}
-              style={[styles.icon, { width: size, height: size }]}
+              source={
+                focused
+                  ? require('../../assets/images/그룹 3877.png')
+                  : require('../../assets/images/그룹 5319.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
             />
           ),
         }}
       />
 
-      {/* 2) 기기정보 (가운데) */}
       <Tabs.Screen
-        name="/(tabs)/device"
+        name="device/index"
         options={{
           tabBarLabel: '기기정보',
-          tabBarIcon: ({ size }) => (
+          tabBarIcon: ({ focused, size }) => (
             <Image
-              source={require('../../assets/images/그룹 3875_icon.png')}
-              style={[styles.icon, { width: size, height: size }]}
+              source={
+                focused
+                  ? require('../../assets/images/그룹 3875_icon.png')
+                  : require('../../assets/images/그룹 3875.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
             />
           ),
-          tabBarBadge: '!',  // 배지
+          tabBarBadge: '!',
           tabBarBadgeStyle: { backgroundColor: 'red' },
         }}
       />
 
-      {/* 3) 마이페이지 (맨 오른쪽) */}
       <Tabs.Screen
-        name="my"
+        name="mypage/index"
         options={{
           tabBarLabel: '마이페이지',
-          tabBarIcon: ({ size }) => (
+          tabBarIcon: ({ focused, size }) => (
             <Image
-              source={require('../../assets/images/그룹 5317.png')}
-              style={[styles.icon, { width: size, height: size }]}
+              source={
+                focused
+                  ? require('../../assets/images/그룹 5317.png')
+                  : require('../../assets/images/그룹 3873.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
             />
           ),
         }}
@@ -68,6 +95,5 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   icon: {
     resizeMode: 'contain',
-    // tintColor를 주지 않으면 원본 색상이 그대로 표시됩니다.
   },
 });

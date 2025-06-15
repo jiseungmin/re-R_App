@@ -21,12 +21,12 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {/* 인증 흐름 */}
-        <Stack.Screen name="signIn" />
-        <Stack.Screen name="signUp/index" />
-        <Stack.Screen name="signUp/form" />
-        <Stack.Screen name="signUp/health" />
-        <Stack.Screen name="signUp/privacy" />
-        <Stack.Screen name="signUp/terms" />
+        <Stack.Screen name="(auth)/signIn" />
+        <Stack.Screen name="(auth)/signUp" />
+        <Stack.Screen name="(auth)/signUp/form" />
+        <Stack.Screen name="(auth)/signUp/health" />
+        <Stack.Screen name="(auth)/signUp/privacy" />
+        <Stack.Screen name="(auth)/signUp/terms" />
         {/* 메인 탭 */}
         <Stack.Screen name="(tabs)" />
         {/* 404 */}

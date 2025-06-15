@@ -29,7 +29,7 @@ export default function SignUpFormScreen() {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: isValid ? '#2196F3' : '#ccc' }]}
         disabled={!isValid}
-        onPress={() => router.push('/signUp/health')}
+        onPress={() => router.push('/(auth)/signUp/health')}
       >
         <Text style={styles.buttonText}>다음</Text>
       </TouchableOpacity>
