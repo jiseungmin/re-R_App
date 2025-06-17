@@ -1,16 +1,16 @@
 // app/faq/index.js
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-
+export const unstable_noLayout = true;
 const FAQ_DATA = [
   {
     id: '1',
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
   header: {
-    height: 90,
+    paddingVertical: 15,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
