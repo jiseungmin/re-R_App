@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// 버튼 폭 비율
+const BUTTON_WIDTH = SCREEN_WIDTH * 0.38;
+const BUTTON_HEIGHT = BUTTON_WIDTH * 0.4;
 
 export default function HealthIntroCard({ onNext, onBack }) {
   const router = useRouter();
@@ -47,7 +50,7 @@ export default function HealthIntroCard({ onNext, onBack }) {
             <Text style={styles.backButtonText}>돌아가기</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity  onPress={() => router.push('./kneeAngleScreen')} style={styles.imageButton}>
+          <TouchableOpacity onPress={() => router.push('./Description')} style={styles.imageButton}>
             <Image
               source={require('../../../../assets/images/사각형 960.png')}
               style={styles.buttonImage}
@@ -73,9 +76,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   illustrationWrap: {
-    width: '70%',
-    height: 160,
-    marginBottom: 12,
+    width: SCREEN_WIDTH * 0.8,      
+    height: SCREEN_WIDTH * 0.5,    
+    marginBottom: 16,              
     position: 'relative',
   },
   illustration: {
@@ -85,7 +88,7 @@ const styles = StyleSheet.create({
   },
   titleOverlay: {
     position: 'absolute',
-    bottom: -30,
+    bottom: -36,                    
     left: 0,
     right: 0,
     paddingHorizontal: 8,
@@ -94,56 +97,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,                   
     color: '#222',
   },
   topIcon: {
-    width: 20,
-    height: 20,
+    width: 24,                      
+    height: 24,
     resizeMode: 'contain',
   },
   separator: {
-    width: '67%',
-    marginTop: 20,
-    height: 1,
+    width: SCREEN_WIDTH * 0.75,     
+    marginTop: 24,                  
+    height: 1.5,                    
     backgroundColor: '#ccc',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   desc: {
-    fontSize: 14,
+    fontSize: 16,                   
     color: '#444',
     textAlign: 'left',
-    lineHeight: 22,
-    marginBottom: 15,
-    paddingLeft: 8, // 추가: 왼쪽 여백을 넣어 "추천드립니다" 텍스트 기준 맞춤
-    width: '70%',   // illustrationWrap과 너비 통일
+    lineHeight: 24,                 
+    marginBottom: 20,
+    paddingLeft: 8,
+    width: SCREEN_WIDTH * 0.8,      
   },
-  
   buttonRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 10,
+    justifyContent: 'space-between',
+    width: SCREEN_WIDTH * 0.85,     
+    marginTop: 16,
   },
   imageButton: {
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonImage: {
-    width: 120,
-    height: 48,
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
     resizeMode: 'contain',
   },
   backButtonText: {
     position: 'absolute',
-    fontSize: 14,
+    fontSize: 16,                   
     color: '#000',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   nextButtonText: {
     position: 'absolute',
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

@@ -1,170 +1,187 @@
+// app/(tabs)/kneeAngleManual.js
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-const { width } = Dimensions.get('window');
+import { useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
-export default function KneeAngleMeasurement({ onNext }) {
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+export default function KneeAngleManual() {
   const router = useRouter();
+  const [angle, setAngle] = useState('');
 
   return (
-    <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Image
-            source={require('../../../../assets/images/previous_arrow.png')}
-            style={styles.backIcon}
-          />
-        </TouchableOpacity>
-        <View style={styles.headerTitleWrapper}>
-          <Text style={styles.headerTitle}>무릎각도</Text>
-        </View>
-        {/* 빈 공간으로 뒤로가기 버튼과 균형 맞춤 */}
-        <View style={{ width: 34 }} />
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+      // iOS: padding, Android: position
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 60}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <SafeAreaView style={styles.inner}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={28} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>무릎각도 수동측정</Text>
+            <View style={styles.backBtn} />
+          </View>
 
-      {/* 타이틀과 밑줄, 부제목 */}
-      <View style={styles.titleArea}>
-        <Text style={styles.title}>측정하기</Text>
-        <View style={styles.titleLine} />
-        <Text style={styles.subtitle}>측정 설명 내용</Text>
-      </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Title & Illustration */}
+            <View style={styles.content}>
+              <Text style={styles.title}>무릎각도 수동측정</Text>
+              <Text style={styles.subtitle}>다음과 같이 각도를 재주세요</Text>
+              <Image
+                source={require('../../../../assets/images/checkMyHealth/knee_manual.png')}
+                style={styles.image}
+              />
+            </View>
 
-      {/* 이미지와 텍스트 박스 */}
-      <View style={styles.imageBox}>
-        <Image
-          source={require('../../../../assets/images/사각형 956.png')} // 배경 박스 이미지
-          style={styles.imageBackground}
-        />
-        <Image
-          source={require('../../../../assets/images/그룹 3974.png')} // 무릎 그림
-          style={styles.kneeImage}
-        />
-        <Text style={styles.caption}>
-          무릎을 최대한{' '}
-          <Text style={styles.highlight}>굽혀</Text>
-          보세요
-        </Text>
-      </View>
+            {/* Input Card */}
+            <View style={styles.inputCard}>
+              <Text style={styles.inputLabel}>
+                측정 후 최대 각도를{'\n'}입력해 주십시오.
+              </Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  value={angle}
+                  onChangeText={setAngle}
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
+                <Text style={styles.suffix}>Deg</Text>
+              </View>
+            </View>
 
-      {/* 다음 버튼 */}
-      <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-        <Image
-          source={require('../../../../assets/images/사각형 2450.png')}
-          style={styles.nextButtonImage}
-        />
-        <Text style={styles.nextButtonText}>다음</Text>
-      </TouchableOpacity>
-    </View>
+            {/* Confirm Button */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                Keyboard.dismiss();
+                console.log('각도:', angle);
+                router.push('./PainTest')
+              }}
+            >
+              <Text style={styles.buttonText}>확인</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 40,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  inner: { flex: 1 },
   header: {
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ccc',
   },
-  backButton: {
-    paddingRight: 10,
-    width: 34,
-    height: 34,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
-  headerTitleWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
+  backBtn: { width: 28, justifyContent: 'center' },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '500',
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '700',
   },
 
-  titleArea: {
-    width: '80%',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-    marginTop: 40, // 중간 위치 조정용 간격
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 20, // 키보드 있을 때도 스크롤 여유
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
+
+  content: {
+    alignItems: 'center',
+    paddingTop: 24,
   },
-  titleLine: {
-    marginTop: 4,
-    width: 83,
-    height: 2,
-    backgroundColor: '#ccc',
-    marginBottom: 8,
-  },
+  title: { fontSize: 24, fontWeight: '700', color: '#000' },
   subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
+    marginBottom: 64,
+    textAlign: 'center',
+  },
+  image: {
+    width: SCREEN_WIDTH * 0.8,
+    height: SCREEN_WIDTH * 0.5,
+    resizeMode: 'contain',
+    marginBottom: 32,
+  },
+
+  inputCard: {
+    backgroundColor: '#f2f2f2',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 32,
+  },
+  inputLabel: {
     fontSize: 14,
     color: '#444',
+    marginBottom: 8,
+    textAlign: 'center',
+    fontWeight: '700',
   },
-
-  imageBox: {
-    width: '80%',
-    height: 200,
-    position: 'relative',
+  inputRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
   },
-  imageBackground: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    resizeMode: 'stretch',
-    borderRadius: 16,
+  input: {
+    width: 80,
+    height: 40,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    fontSize: 18,
+    textAlign: 'center',
   },
-  kneeImage: {
-    width: '80%',
-    height: '70%',
-    resizeMode: 'contain',
-    marginBottom: 12,
-  },
-  caption: {
-    position: 'absolute',
-    bottom: 12,
-    fontSize: 16,
-    color: '#000',
-  },
-  highlight: {
-    color: '#007bff',
-    fontWeight: 'bold',
+  suffix: {
+    fontSize: 18,
+    color: '#444',
+    marginLeft: 8,
+    fontWeight: '700',
   },
 
-  nextButton: {
-    width: '100%', // 너비 확장
-    height: 48,
-    justifyContent: 'center',
+  button: {
+    backgroundColor: '#4f6dff',
+    borderRadius: 24,
+    height: 50,
     alignItems: 'center',
-    position: 'relative',
-    marginHorizontal: 0, // 좌우 간격 추가
+    justifyContent: 'center',
+    marginBottom: 32,
   },
-  nextButtonImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-  nextButtonText: {
-    position: 'absolute',
+  buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: '600',
   },
 });
