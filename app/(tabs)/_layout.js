@@ -1,5 +1,6 @@
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+// app/(tabs)/_layout.js
 import { Tabs } from 'expo-router';
+import { Image, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -7,38 +8,91 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#4f6dff',
+        tabBarInactiveTintColor: '#999',
         tabBarLabelStyle: { fontSize: 12 },
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          height: 100,
+        },
       }}
-    >
+    >  
+
       <Tabs.Screen
-        name="exercise"
+        name="exercise/index"
         options={{
-          title: '운동하기',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="dumbbell" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="device"
-        options={{
-          title: '기기정보',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="devices" size={size} color={color} />
+          tabBarLabel: '운동하기',
+          tabBarIcon: ({ focused, size }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../assets/images/그룹 3877.png')
+                  : require('../../assets/images/그룹 5319.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
+            />
           ),
         }}
       />
 
-      {/* mypage/index만 탭으로 등록 (faq는 여기에 적지 않습니다) */}
       <Tabs.Screen
-        name="mypage/index"
+        name="device/index"
         options={{
-          title: '마이페이지',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-circle" size={size} color={color} />
+          tabBarLabel: '기기정보',
+          tabBarIcon: ({ focused, size }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../assets/images/그룹 3875_icon.png')
+                  : require('../../assets/images/그룹 3875.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
+            />
+          ),
+          tabBarBadge: '!',
+          tabBarBadgeStyle: { backgroundColor: 'red' },
+        }}
+      />
+
+      <Tabs.Screen
+        name="mypage"
+        options={{
+          tabBarLabel: '마이페이지',
+          tabBarIcon: ({ focused, size }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../assets/images/그룹 5317.png')
+                  : require('../../assets/images/그룹 3873.png')
+              }
+              style={[
+                styles.icon,
+                {
+                  width: focused ? size + 6 : size,
+                  height: focused ? size + 6 : size,
+                },
+              ]}
+            />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  icon: {
+    resizeMode: 'contain',
+  },
+});

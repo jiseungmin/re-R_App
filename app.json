@@ -16,7 +16,13 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "package": "com.monkew_max.reR_App"
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +39,27 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      "react-native-ble-plx",
+      [
+        "react-native-permissions",
+        {
+          "permissions": [
+            "BLUETOOTH",
+            "BLUETOOTH_CONNECT",
+            "ACCESS_FINE_LOCATION"
+          ]
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1460956e-7bf6-4914-bf84-1fb8a8419cf1"
+      }
     }
   }
 }
