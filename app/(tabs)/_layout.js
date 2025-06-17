@@ -1,6 +1,5 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
   return (
@@ -27,15 +26,16 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="devices" size={size} color={color} />
           ),
-          tabBarBadge: '!',
         }}
       />
+
+      {/* mypage/index만 탭으로 등록 (faq는 여기에 적지 않습니다) */}
       <Tabs.Screen
-        name="mypage"
+        name="mypage/index"
         options={{
           title: '마이페이지',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
+            <MaterialCommunityIcons name="account-circle" size={size} color={color} />
           ),
         }}
       />

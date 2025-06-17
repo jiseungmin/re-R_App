@@ -45,8 +45,7 @@ export default function MyPage() {
         {/* 3) 결과 정보 버튼 (이미지 전체 배경 + 텍스트 오버레이) */}
         <View style={styles.resultSection}>
           <TouchableOpacity style={styles.card}      onPress={() => {
-          console.log('hi');
-          router.push('/result');
+          router.push('mypage/result');
         }}>
             <ImageBackground
               source={require('../../../assets/images/그룹 5401.png')} // 전체 카드 이미지
@@ -60,7 +59,7 @@ export default function MyPage() {
           </TouchableOpacity>
 
             <TouchableOpacity style={styles.card}      onPress={() => {
-          router.push('/train');
+          router.push('mypage/train');
         }}>
             <ImageBackground
               source={require('../../../assets/images/그룹 5402.png')} // 전체 카드 이미지
@@ -84,22 +83,22 @@ export default function MyPage() {
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5345.png')}
             label="회원정보 수정"
-            onPress={() => router.push('/signupedit')}
+            onPress={() => router.push('mypage/signupedit')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5801.png')}
             label="자주 묻는 질문"
-            onPress={() => router.push('/faq')}
+            onPress={() => router.push('mypage/faq')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5868.png')}
             label="알림 설정"
-            onPress={() => router.push('/notification')}
+            onPress={() => router.push('mypage/notification')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5350.png')}
             label="로그아웃"
-            onPress={() => {}}
+            onPress={() => {router.push('signIn')}}
           />
         </View>
       </ScrollView>
