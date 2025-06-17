@@ -1,18 +1,18 @@
 // app/device/index.js
-import React, { useState, useRef } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  Image,
-  Animated,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
-} from 'react-native';
 import { Stack } from 'expo-router';
+import { useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -50,7 +50,7 @@ export default function DevicePage() {
     >
       <View style={styles.deviceCard}>
         <Image
-          source={require('../../../assets/images/그룹 4321.png')}
+          source={require('../../../assets/images/그룹 104.png')}
           style={styles.deviceIcon}
         />
         <View style={styles.deviceInfo}>
