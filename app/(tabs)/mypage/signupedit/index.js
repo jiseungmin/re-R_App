@@ -3,6 +3,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -13,6 +14,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+// 뒤로가기 아이콘 이미지
+const ICON_PREVIOUS = require('../../../../assets/images/mypage/previous_arrow.png');
 
 export default function MemberInfoEditScreen() {
   const router = useRouter();
@@ -62,13 +66,15 @@ export default function MemberInfoEditScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>회원정보수정</Text>
-        <View style={{ width: 24 }} />
+      {/* 헤더 */}
+        <View style={styles.header}>
+            <TouchableOpacity
+                onPress={() => router.push('/mypage')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+             <Image source={ICON_PREVIOUS} style={styles.backIcon} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>회원정보수정</Text>
+              <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -183,6 +189,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginLeft: 5
   },
   content: { padding: 16, paddingBottom: 32 },
   footer: {

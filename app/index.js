@@ -8,7 +8,7 @@ export default function SplashScreen() {
   useEffect(() => {
     // 1.5초 후 홈 화면으로 이동
     const timer = setTimeout(() => {
-      router.replace('/landing');
+      router.replace('/mypage');
     }, 1500);
     return () => clearTimeout(timer);
   }, []);

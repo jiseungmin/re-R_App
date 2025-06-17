@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   ImageBackground,
   SafeAreaView,
   ScrollView,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 
 const scoreBg = require('../../../../assets/images/mypage/trian/그룹 5431.png');
+const ICON_PREVIOUS = require('../../../../assets/images/mypage/previous_arrow.png');
 
 export default function TrainingResult() {
   const router = useRouter();
@@ -57,13 +59,16 @@ export default function TrainingResult() {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 고정 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>훈련 결과</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      {/* 헤더 */}
+       <View style={styles.header}>
+         <TouchableOpacity
+                      onPress={() => router.push('/mypage')}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                   <Image source={ICON_PREVIOUS} style={styles.backIcon} />
+         </TouchableOpacity>
+                  <Text style={styles.headerTitle}>훈련 결과</Text>
+                    <View style={{ width: 24 }} />
+        </View>
 
       {/* 본문 스크롤 */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
@@ -169,6 +174,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#000',
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginLeft: 5
   },
   backBtn: {
     position: 'absolute',
