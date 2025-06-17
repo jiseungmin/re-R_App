@@ -1,6 +1,5 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TermsScreen() {
   const router = useRouter();
@@ -127,12 +126,17 @@ export default function TermsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    height: 56, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 12, borderBottomWidth: 1, borderColor: '#eee'
+    height: 56,
+    marginTop: 32,        
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
   },
   back: { fontSize: 16, color: '#007AFF' },
   title: { fontSize: 18, fontWeight: '600' },
-  body: { padding: 16 },
+  body: { padding: 8 },
   paragraph: { fontSize: 14, color: '#505050', lineHeight: 22 }
 });

@@ -1,11 +1,10 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function PrivacyScreen() {
   const router = useRouter();
   const content = `
-주식회사 헬타시스(이하 “회사”라 함)는 이용자의 개인 정보를 중요하게 생각하며, ‘정보통신망 이용 촉진 및 정보보호 등에 관한 법률’, ‘개인정보 보호법’을 준수하기 위하여 노력하고 있습니다.
+주식회사 리런(이하 “회사”라 함)는 이용자의 개인 정보를 중요하게 생각하며, ‘정보통신망 이용 촉진 및 정보보호 등에 관한 법률’, ‘개인정보 보호법’을 준수하기 위하여 노력하고 있습니다.
 회사는 개인정보 처리방침을 통하여 회사가 이용자로부터 제공받은 개인정보를 어떠한 용도와 방식으로 이용하고 있으며, 개인정보보호를 위해 어떠한 조처를 하고 있는지 알려드립니다.
 본 방침은 2023년 08월 01일부터 시행되며, 이를 개정하는 경우 앱 공지(또는 이메일, SMS 등)를 통해 안내합니다.
 
@@ -90,6 +89,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
     height: 56,
+    marginTop: 32,        
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -99,6 +99,6 @@ const styles = StyleSheet.create({
   },
   back: { fontSize: 16, color: '#007AFF' },
   title: { fontSize: 18, fontWeight: '600' },
-  body: { padding: 16 },
+  body: { padding: 8 },
   paragraph: { fontSize: 14, color: '#505050', lineHeight: 22 },
 });

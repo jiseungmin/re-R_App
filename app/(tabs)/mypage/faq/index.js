@@ -1,15 +1,20 @@
 // app/faq/index.js
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import {
+  Image, SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+export const unstable_noLayout = true;
+
+// 뒤로가기 아이콘 이미지
+const ICON_PREVIOUS = require('../../../../assets/images/mypage/previous_arrow.png');
 
 const FAQ_DATA = [
   {
@@ -92,8 +97,11 @@ export default function FAQPage() {
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/mypage')}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity
+          onPress={() => router.push('/mypage')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Image source={ICON_PREVIOUS} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>자주 묻는 질문</Text>
         <View style={{ width: 24 }} />
@@ -141,12 +149,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
   header: {
-    height: 90,
+    paddingVertical: 15,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#ccc',
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginLeft: 5
   },
   headerTitle: {
     flex: 1,
@@ -177,7 +191,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   questionPrefix: {
-    color: '#006FFD',  // 대괄호 안 텍스트를 파란색으로
+    color: '#006FFD',
   },
   answerText: {
     paddingHorizontal: 16,

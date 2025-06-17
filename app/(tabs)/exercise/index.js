@@ -9,9 +9,8 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-export default function ExerciseScreen() {
+export default function Exercise() {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
@@ -33,7 +32,7 @@ export default function ExerciseScreen() {
             />
           </TouchableOpacity>
 
-          <Text style={styles.headerText}>아버님의, {'\n'} 건강한 하루를 응원해요!</Text>
+          <Text style={styles.headerText}>아버님의, {'\n'}건강한 하루를 응원해요!</Text>
         </View>
 
         {/* 빈 공간 주거나 flex로 벌리기 위해 */}
