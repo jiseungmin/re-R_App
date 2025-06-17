@@ -1,0 +1,244 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useState } from 'react';
+import {
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+
+const offSwitch  = require('../../assets/images/notification/그룹 5957.png');
+const onSwitch   = require('../../assets/images/notification/그룹 5958.png');
+
+export default function AlarmSettingsScreen({ navigation }) {
+  // 토글 상태
+  const [firstEnabled, setFirstEnabled]       = useState(false);
+  const [secondEnabled, setSecondEnabled]     = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+
+  // 시간 상태 & DatePicker 표시 여부
+  const [firstTime, setFirstTime]       = useState(new Date());
+  const [showFirstPicker, setShowFirstPicker] = useState(false);
+
+  const [secondTime, setSecondTime]       = useState(new Date());
+  const [showSecondPicker, setShowSecondPicker] = useState(false);
+
+  // 다시 알림 간격 & Modal 표시 여부
+  const [reminderInterval, setReminderInterval]   = useState(10);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
+
+  // 시각 포맷 함수
+  const formatTime = date => {
+    let h = date.getHours();
+    const m = date.getMinutes();
+    const ampm = h < 12 ? '오전' : '오후';
+    h = h % 12 || 12;
+    const mm = m < 10 ? '0' + m : m;
+    const hh = h < 10 ? '0' + h : h;
+    return { time: `${hh}:${mm}`, ampm };
+  };
+
+  const f1 = formatTime(firstTime);
+  const f2 = formatTime(secondTime);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>알림시간 설정</Text>
+      </View>
+
+      {/* 본문 */}
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* 1회차 운동 */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>1회차 운동</Text>
+            <TouchableOpacity onPress={() => setFirstEnabled(v => !v)}>
+              <Image
+                source={ firstEnabled ? onSwitch : offSwitch }
+                style={styles.switchImage}
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity 
+            style={styles.timeRow}
+            onPress={() => setShowFirstPicker(true)}
+          >
+            <Text style={styles.timeText}>{f1.time}</Text>
+            <Text style={styles.amPmText}>{f1.ampm}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 2회차 운동 */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>2회차 운동</Text>
+            <TouchableOpacity onPress={() => setSecondEnabled(v => !v)}>
+              <Image
+                source={ secondEnabled ? onSwitch : offSwitch }
+                style={styles.switchImage}
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity 
+            style={styles.timeRow}
+            onPress={() => setShowSecondPicker(true)}
+          >
+            <Text style={styles.timeText}>{f2.time}</Text>
+            <Text style={styles.amPmText}>{f2.ampm}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 다시 알림 */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>다시 알림 (운동 미완료시)</Text>
+            <TouchableOpacity onPress={() => setReminderEnabled(v => !v)}>
+              <Image
+                source={ reminderEnabled ? onSwitch : offSwitch }
+                style={styles.switchImage}
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity 
+            style={styles.timeRow}
+            onPress={() => setShowReminderPicker(true)}
+          >
+            <Text style={styles.timeText}>{reminderInterval}</Text>
+            <Text style={styles.amPmText}>분 후</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/** 1회차 DateTimePicker */}
+      {showFirstPicker && (
+        <DateTimePicker
+          value={firstTime}
+          mode="time"
+          display="spinner"
+          onChange={(e, sel) => {
+            setShowFirstPicker(false);
+            if (sel) setFirstTime(sel);
+          }}
+        />
+      )}
+
+      {/** 2회차 DateTimePicker */}
+      {showSecondPicker && (
+        <DateTimePicker
+          value={secondTime}
+          mode="time"
+          display="spinner"
+          onChange={(e, sel) => {
+            setShowSecondPicker(false);
+            if (sel) setSecondTime(sel);
+          }}
+        />
+      )}
+
+      {/** 다시 알림 간격 선택 모달 */}
+      <Modal
+        visible={showReminderPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowReminderPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setShowReminderPicker(false)}
+        >
+          <View style={styles.modalContent}>
+            {[5,10,15,30].map(min => (
+              <TouchableOpacity
+                key={min}
+                style={styles.modalOption}
+                onPress={() => {
+                  setReminderInterval(min);
+                  setShowReminderPicker(false);
+                }}
+              >
+                <Text style={styles.modalOptionText}>{min}분 후</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 12 },
+  content: { padding: 16 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
+    padding: 16,
+    marginBottom: 12
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  cardTitle: { fontSize: 16, fontWeight: '500' },
+  switchImage: {
+    width: 51,
+    height: 31,
+    resizeMode: 'contain'
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end'
+  },
+  timeText: {
+    fontSize: 32,
+    fontWeight: 'bold'
+  },
+  amPmText: {
+    fontSize: 16,
+    marginLeft: 4,
+    marginBottom: 4
+  },
+  // Reminder Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingVertical: 8,
+    width: 200
+  },
+  modalOption: {
+    paddingVertical: 12
+  },
+  modalOptionText: {
+    textAlign: 'center',
+    fontSize: 16
+  }
+});

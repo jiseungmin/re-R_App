@@ -1,18 +1,16 @@
 // app/mypage.js
-import React from 'react';
+import { Stack, useRouter } from 'expo-router';
 import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  Dimensions,
   Image,
   ImageBackground,
-  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -46,18 +44,24 @@ export default function MyPage() {
 
         {/* 3) 결과 정보 버튼 (이미지 전체 배경 + 텍스트 오버레이) */}
         <View style={styles.resultSection}>
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity style={styles.card}      onPress={() => {
+          console.log('hi');
+          router.push('/result');
+        }}>
             <ImageBackground
               source={require('../../../assets/images/그룹 5401.png')} // 전체 카드 이미지
               style={styles.cardBg}
               imageStyle={styles.cardRadius}
               resizeMode="cover"
+         
             >
               <Text style={styles.cardTextOverlay}>평가 및 진단 결과</Text>
             </ImageBackground>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card}>
+            <TouchableOpacity style={styles.card}      onPress={() => {
+          router.push('/train');
+        }}>
             <ImageBackground
               source={require('../../../assets/images/그룹 5402.png')} // 전체 카드 이미지
               style={styles.cardBg}
@@ -80,7 +84,7 @@ export default function MyPage() {
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5345.png')}
             label="회원정보 수정"
-            onPress={() => {}}
+            onPress={() => router.push('/signupedit')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5801.png')}
@@ -90,7 +94,7 @@ export default function MyPage() {
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5868.png')}
             label="알림 설정"
-            onPress={() => {}}
+            onPress={() => router.push('/notification')}
           />
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5350.png')}
