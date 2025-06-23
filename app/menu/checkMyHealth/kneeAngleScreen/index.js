@@ -1,5 +1,4 @@
 // app/(tabs)/kneeAngleManual.js
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -17,6 +16,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import Header from '../../../../components/ui/Header';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -26,21 +26,14 @@ export default function KneeAngleManual() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
-      // iOS: padding, Android: position
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 60}
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <SafeAreaView style={styles.inner}>
           {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={28} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>무릎각도 수동측정</Text>
-            <View style={styles.backBtn} />
-          </View>
+          <Header title="무릎각도 수동측정" />
 
           <ScrollView
             contentContainerStyle={styles.scrollContent}
@@ -96,14 +89,6 @@ export default function KneeAngleManual() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   inner: { flex: 1 },
-  header: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
-  },
   backBtn: { width: 28, justifyContent: 'center' },
   headerTitle: {
     flex: 1,
@@ -117,6 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 20, // 키보드 있을 때도 스크롤 여유
+    backgroundColor: '#fff', // ← 흰색 배경
   },
 
   content: {

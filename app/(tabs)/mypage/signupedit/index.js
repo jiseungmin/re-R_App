@@ -3,7 +3,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -12,8 +11,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import Header from '../../../../components/ui/Header';
 
 // 뒤로가기 아이콘 이미지
 const ICON_PREVIOUS = require('../../../../assets/images/mypage/previous_arrow.png');
@@ -67,15 +67,7 @@ export default function MemberInfoEditScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
-        <View style={styles.header}>
-            <TouchableOpacity
-                onPress={() => router.push('/mypage')}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-             <Image source={ICON_PREVIOUS} style={styles.backIcon} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>회원정보수정</Text>
-              <View style={{ width: 24 }} />
-      </View>
+      <Header title="회원정보수정" />
 
       <KeyboardAvoidingView
         style={styles.flex}

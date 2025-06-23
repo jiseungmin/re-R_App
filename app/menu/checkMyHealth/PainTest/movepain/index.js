@@ -1,5 +1,4 @@
 // app/(tabs)/PainScaleScreen.js
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Header from '../../../../../components/ui/Header';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_PADDING = 16;
@@ -103,13 +103,7 @@ export default function PainScaleScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>통증 테스트</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header title="통증 테스트" />
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {QUESTIONS.map(section => (
@@ -126,14 +120,15 @@ export default function PainScaleScreen() {
             ))}
           </React.Fragment>
         ))}
-      </ScrollView>
-       <TouchableOpacity
+
+        <TouchableOpacity
           style={[styles.nextButton, !allAnswered && styles.nextButtonDisabled]}
           disabled={!allAnswered}
           onPress={() => router.push('./todaypain')}
         >
           <Text style={styles.nextButtonText}>다음</Text>
         </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -167,7 +162,7 @@ const styles = StyleSheet.create({
   optionCircleSelected: { backgroundColor: '#4F6EFF', borderColor: '#4F6EFF' },
   optionText: { fontSize: 16, color: '#333' },
   optionTextSelected: { color: '#fff' },
-  nextButton: { height: 48, width: '80%', borderRadius: 20, backgroundColor: '#4F6EFF', alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginTop: 24 },
+  nextButton: { height: 48, width: '80%', borderRadius: 20, backgroundColor: '#4F6EFF', alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 10},
   nextButtonDisabled: { backgroundColor: '#CACACA' },
   nextButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
 });

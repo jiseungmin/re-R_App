@@ -1,5 +1,4 @@
 // app/(tabs)/PainScaleScreen.js
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -13,6 +12,8 @@ import {
   View
 } from 'react-native';
 import PainPopup from '../../../../components/popup/painPopup';
+import Header from '../../../../components/ui/Header';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BAR_WIDTH = SCREEN_WIDTH;
@@ -28,11 +29,13 @@ export default function PainScaleScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-
+    {/* Header */}
+       <Header title="통증 테스트" />
       <Modal
         visible={showPopup}
         animationType="fade"
         transparent
+        statusBarTranslucent
         onRequestClose={() => setShowPopup(false)}
       >
         <View style={styles.popupOverlay}>
@@ -43,17 +46,7 @@ export default function PainScaleScreen() {
         </View>
       </Modal>
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>통증 테스트</Text>
-        <View style={{ width: 24 }} />
-      </View>
+  
 
       {/* Description */}
       <View style={styles.descBox}>
@@ -87,7 +80,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    paddingTop: 12,
   },
   header: {
     width: '100%',

@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Modal,
   SafeAreaView,
@@ -10,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import EvaluationCompletePopup from '../../../../components/popup/completePopup';
+import FearShowPopup from '../../../../components/popup/fearPopup';
+import Header from '../../../../components/ui/Header';
 
 export default function App() {
   const router = useRouter();
@@ -18,36 +19,53 @@ export default function App() {
 
   const options = ['겁이 많다', '보통이다', '겁이 없는 편'];
 
+  const [showfearPopup, setShowfearPopup] = useState(false);
+  
+    // 화면 진입시 팝업 열기
+  useEffect(() => {
+    setShowfearPopup(true);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
+
+      {/* 모달 */}
+      {/* 첫 번째 모달: FearShowPopup */}
+        <Modal
+          visible={showfearPopup}           
+          animationType="fade"
+          transparent
+          statusBarTranslucent
+          onRequestClose={() => setShowfearPopup(false)}
+        >
+          <FearShowPopup
+            onStart={() => {
+              setShowfearPopup(false);
+            }}
+          />
+        </Modal>
+
       {/* 모달 */}
       <Modal
         visible={showPopup}
         animationType="fade"
         transparent
+        statusBarTranslucent
         onRequestClose={() => setShowPopup(false)}
       >
         <EvaluationCompletePopup
           onViewResult={() => {
             setShowPopup(false);
-            console.log("결과보기 클릭됨");
             router.push('/evalresult'); // 예: 결과 페이지 이동
           }}
           onLater={() => {
             setShowPopup(false);
-            console.log("나중에 보기 클릭됨");
           }}
         />
       </Modal>
 
       {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>겁 테스트</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header title="겁 테스트" />
 
       {/* 질문 */}
       <Text style={styles.questionText}>Q. 평소에 겁이 많은 편인가요?</Text>
@@ -91,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
   },
   header: {
     height: 56,
@@ -151,7 +168,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: 80,
   },
   nextButtonDisabled: {
     backgroundColor: '#CACACA',

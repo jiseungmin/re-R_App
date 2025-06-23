@@ -2,27 +2,27 @@ import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'rea
 
 const { width } = Dimensions.get('window');
 
-export default function KneeAnglePopup({ onStart }) {
+export default function FearShowPopup({ onStart }) {
   return (
     <View style={styles.overlay}>
       <View style={styles.popup}>
         {/* 콘텐츠 영역 */}
         <View style={styles.content}>
           <Image
-            source={require('../../../../assets/images/그룹 4806.png')}
+            source={require('../../assets/images/그룹 4806.png')}
             style={styles.image}
           />
-          <Text style={styles.title}>〈무릎각도 측정〉</Text>
+          <Text style={styles.title}>〈겁 테스트〉</Text>
           <Text style={styles.desc}>
-            첫번째 검사로 <Text style={{ fontWeight: 'bold', color: '#007bff' }}>무릎각도</Text>를{'\n'}
-            측정해 보겠습니다.
+            세번째 검사로 <Text style={{ fontWeight: 'bold', color: '#007bff' }}>겁 테스트</Text>를{'\n'}
+            평가해 보겠습니다.
           </Text>
         </View>
 
         {/* 하단 버튼 */}
         <TouchableOpacity style={styles.buttonContainer} onPress={onStart}>
           <Image
-            source={require('../../../../assets/images/사각형 974.png')}
+            source={require('../../assets/images/사각형 974.png')}
             style={styles.buttonImage}
           />
           <Text style={styles.buttonText}>시작하기</Text>
