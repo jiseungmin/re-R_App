@@ -8,7 +8,7 @@ export const EXERCISES = [
       '손이나 수건 등으로 발을 몸 쪽으로 최대한 당겨주세요.',
       '5초 유지한 다음 천천히 놓아주세요.',
     ],
-    video: require('../../assets/vedieo/CPM 어플 가이드동영상/A.mp4'),
+    video: require('../assets/vedieo/CPM 어플 가이드동영상/A.mp4'),
   },
   {
     id: 1,
@@ -18,7 +18,7 @@ export const EXERCISES = [
       '발뒤꿈치를 바닥에 붙인 상태로 유지합니다.',
       '10회 반복해주세요.',
     ],
-    video: require('../../assets/vedieo/CPM 어플 가이드동영상/AA.mp4'),
+    video: require('../assets/vedieo/CPM 어플 가이드동영상/AA.mp4'),
   },
   {
     id: 2,
@@ -28,6 +28,6 @@ export const EXERCISES = [
       '무릎을 살짝 굽히며 엉덩이를 뒤로 빼주세요.',
       '5초 유지 후 천천히 일어납니다.',
     ],
-    video: require('../../assets/vedieo/CPM 어플 가이드동영상/AB.mp4'),
+    video: require('../assets/vedieo/CPM 어플 가이드동영상/AB.mp4'),
   },
 ];

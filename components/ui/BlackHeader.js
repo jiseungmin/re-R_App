@@ -14,19 +14,18 @@ import { useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function Header({ title }) {
+export default function BlackHeader({ title }) {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Image
-            source={require('../../assets/images/mypage/previous_arrow.png')}
+            source={require('../../assets/images/그룹 177.png')} // ← 새 화살표
             style={styles.backIcon}
           />
         </TouchableOpacity>
         <Text style={styles.title}>{title}</Text>
-        {/* 오른쪽 공간 확보용 */}
         <View style={styles.rightSpacer} />
       </View>
     </SafeAreaView>
@@ -35,7 +34,7 @@ export default function Header({ title }) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#fff', // ← 흰색 배경
+    backgroundColor: '#000',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headerContainer: {
@@ -62,7 +61,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '600',
-    color: '#000', // ← 글자 색도 검정으로 변경
+    color: '#fff',
   },
   rightSpacer: {
     width: 32,

@@ -1,5 +1,3 @@
-// app/(tabs)/exercise/training/program.js
-import React from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,15 +7,18 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter} from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../../../components/ui/Header';
-import { EXERCISES } from '../../../constants/Exercises_info';
+import { EXERCISES } from '../../../../constants/Exercises_info';
 
 const { width } = Dimensions.get('window');
 const BOX_W = width - 32;
 
 export default function Program() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="운동 프로그램 안내" />
@@ -33,20 +34,21 @@ export default function Program() {
             <Text style={styles.boxText}>{`${ex.id + 1}. ${ex.title}`}</Text>
           </ImageBackground>
         ))}
-        <TouchableOpacity
-          style={styles.nextWrap}
-          onPress={() => router.push(`/exercise/training/detail/${EXERCISES[0].id}`)}
-        >
-          <ImageBackground
-            source={require('../../../../assets/images/사각형 4.png')}
-            style={styles.nextBtn}
-            imageStyle={styles.btnRadius}
-            resizeMode="stretch"
-          >
-            <Text style={styles.nextText}>다음</Text>
-          </ImageBackground>
-        </TouchableOpacity>
       </ScrollView>
+
+      <TouchableOpacity
+        style={[styles.bottomFixedButton, { bottom: insets.bottom + 16 }]}
+        onPress={() => router.push(`/exercise/training/detail/${EXERCISES[0].id}`)}
+      >
+        <ImageBackground
+          source={require('../../../../assets/images/사각형 4.png')}
+          style={styles.nextBtn}
+          imageStyle={styles.btnRadius}
+          resizeMode="stretch"
+        >
+          <Text style={styles.nextText}>다음</Text>
+        </ImageBackground>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -58,6 +60,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+    paddingBottom: 100, // 버튼과 겹치지 않도록 여백 확보
     alignItems: 'center',
   },
   box: {
@@ -74,10 +77,11 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
   },
-  nextWrap: {
+  bottomFixedButton: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 32,
   },
   nextBtn: {
     width: BOX_W,
