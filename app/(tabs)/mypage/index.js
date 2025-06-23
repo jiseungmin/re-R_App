@@ -10,11 +10,13 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal
 } from 'react-native';
-
+import { useState,} from 'react';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function MyPage() {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
@@ -98,10 +100,55 @@ export default function MyPage() {
           <MenuItem
             iconSource={require('../../../assets/images/그룹 5350.png')}
             label="로그아웃"
-            onPress={() => {router.push('signIn')}}
+            onPress={() => setShowLogoutModal(true)}
           />
         </View>
       </ScrollView>
+      <Modal
+        transparent
+        visible={showLogoutModal}
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>로그아웃 확인</Text>
+            <Text style={styles.modalText}>로그아웃 하시겠습니까?</Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => setShowLogoutModal(false)}
+              >
+               <ImageBackground
+                  source={require('../../../assets/images/취소.png')}
+                  style={styles.modalBtnImage}      // ← 수정된 스타일 이름
+                  // imageStyle={styles.modalBtnRadius}  // ← 이 줄 삭제
+                  resizeMode="contain"               // 이미지 비율 유지
+                >
+                  <Text style={styles.cancelText}>취소</Text>
+                </ImageBackground>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => {
+                  setShowLogoutModal(false);
+                  router.push('signIn');
+                }}
+              >
+                <ImageBackground
+                  source={require('../../../assets/images/사각형 3-1.png')}
+                  style={styles.modalBtnImage}      // ← 동일하게 사용
+                  resizeMode="contain"
+                >
+                  <Text style={styles.modalBtnText}>확인</Text>
+                </ImageBackground>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -242,4 +289,65 @@ joinDate: {
   menuIcon: { width: 24, height: 24 },
   menuText: { fontSize: 16, marginLeft: 12, color: '#333' },
   chevron: { width: 16, height: 16, tintColor: '#999' },
+
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+modalBox: {
+  width: '80%',
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  padding: 20,
+  alignItems: 'center',
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  marginBottom: 10,
+  color: '#333',
+},
+modalText: {
+  fontSize: 14,
+  color: '#555',
+  marginBottom: 20,
+  textAlign: 'center',
+},
+modalButtons: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  width: '100%',
+},
+modalBtn: {
+  flex: 1,
+  marginHorizontal: 5,
+},
+modalBtnBg: {
+  width: '100%',
+  height: 40,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+modalBtnRadius: {
+  borderRadius: 8,
+},
+
+ // 버튼 배경 이미지 컨테이너: 크기 직접 조절 가능
+  modalBtnImage: {
+    width: 110,    // 원하는 너비(px)로 조정
+    height: 44,    // 원하는 높이(px)로 조정
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  // 취소 버튼 전용 텍스트 스타일
+  cancelText: {
+    color: '#000', // 검정색
+  },
+
 });
