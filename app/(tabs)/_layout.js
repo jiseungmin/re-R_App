@@ -18,7 +18,7 @@ export default function TabLayout() {
     >  
 
       <Tabs.Screen
-        name="exercise/index"
+        name="exercise"
         options={{
           tabBarLabel: '운동하기',
           tabBarIcon: ({ focused, size }) => (

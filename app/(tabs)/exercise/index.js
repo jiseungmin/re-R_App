@@ -56,6 +56,12 @@ export default function Exercise() {
       {/* Bottom Card */}
       <View style={styles.card}>
         <Text style={styles.cardText}>배정받은 운동플랜이 없습니다.</Text>
+        <TouchableOpacity
+          style={styles.startBtn}
+          onPress={() => router.push('exercise/training')}
+        >
+          <Text style={styles.startBtnText}>운동 시작하기</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
