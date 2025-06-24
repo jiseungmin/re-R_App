@@ -10,7 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import KneeAnglePopup from '../../../../components/popup/AnglePopup';
+
+import KneeAnglePopup from '../../../../components/popup/anglePopup';
 import Header from '../../../../components/ui/Header';
 
 

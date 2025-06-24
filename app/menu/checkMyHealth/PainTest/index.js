@@ -30,7 +30,8 @@ export default function PainScaleScreen() {
   return (
     <SafeAreaView style={styles.container}>
     {/* Header */}
-       <Header title="통증 테스트" />
+    <Header title="통증 테스트" />
+
       <Modal
         visible={showPopup}
         animationType="fade"
