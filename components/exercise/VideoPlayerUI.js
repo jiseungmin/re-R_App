@@ -88,7 +88,7 @@ export default function VideoPlayerUI({
         {paused && !stopped && (
           <TouchableOpacity onPress={togglePlay} style={styles.iconButton}>
             <Image
-              source={require('../../../../assets/images/play_button.png')}
+              source={require('../../assets/images/play_button.png')}
               style={styles.icon}
             />
           </TouchableOpacity>
@@ -102,7 +102,7 @@ export default function VideoPlayerUI({
           onPress={handleStop}
         >
           <ImageBackground
-            source={require('../../../../assets/images/사각형 2040@2x 1.png')}
+            source={require('../../assets/images/사각형 2040@2x 1.png')}
             style={styles.stopBtn}
             imageStyle={styles.btnRadius}
             resizeMode="stretch"
