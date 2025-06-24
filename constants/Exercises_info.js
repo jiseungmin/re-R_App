@@ -10,11 +10,11 @@ export const EXERCISES = [
       '해당 자세로 5초 유지합니다'
     ],
     totalSets: 3,
-    repsPerSet: 10,
+    repsPerSet: 2,
     prepTime: 5,        // 준비 동작 시간 (초)
     stayTime:5 ,         // 유지시간(초)
     cooldownTime: 5,    // 마무리 동작 시간 (초)
-    restBetweenSets: 30, // 세트간 휴식 시간 (초)
+    restBetweenSets: 3, // 세트간 휴식 시간 (초)
     video: require('../assets/video/CPM app guide/A.mp4'),
   },
 ];
