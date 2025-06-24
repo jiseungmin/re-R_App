@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams} from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BlackHeader from '../../../../../components/ui/BlackHeader'; 
 import { EXERCISES } from '../../../../../constants/Exercises_info';
+import CountdownOverlay from '../../../../../components/popup/CountdownOverlay';
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +23,25 @@ export default function Detail() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  return (
+  const [countdown, setCountdown] = useState(0); // 0이면 오버레이 없음
+
+  // 카운트다운 트리거 함수
+  const handleStart = () => {
+    setCountdown(5);
+    let n = 5;
+    const interval = setInterval(() => {
+      n -= 1;
+      if (n > 0) {
+        setCountdown(n);
+      } else {
+        clearInterval(interval);
+        setCountdown(0);
+        router.push(`/exercise/training/detail/${idx}/video`);
+      }
+    }, 1000);
+  };
+
+    return (
     <SafeAreaView style={styles.container}>
       <BlackHeader />
       <View style={styles.body}>
@@ -34,10 +53,10 @@ export default function Detail() {
           ))}
         </View>
       </View>
-
       <TouchableOpacity
         style={[styles.startWrap, { bottom: insets.bottom + 16 }]}
-        onPress={() => router.push(`/exercise/training/detail/${idx}/video`)}
+        onPress={handleStart}
+        disabled={countdown > 0}
       >
         <ImageBackground
           source={require('../../../../../assets/images/사각형 2.png')}
@@ -48,6 +67,9 @@ export default function Detail() {
           <Text style={styles.startText}>시작하기</Text>
         </ImageBackground>
       </TouchableOpacity>
+
+      {/* 카운트다운 오버레이 */}
+      {countdown > 0 && <CountdownOverlay count={countdown} />}
     </SafeAreaView>
   );
 }
