@@ -2,32 +2,19 @@
 export const EXERCISES = [
   {
     id: 0,
-    title: '앉아서 무릎 굽히기',
+    title: '미니 스쿼트',
     description: [
-      '평평한 바닥에 앉아주세요.',
-      '손이나 수건 등으로 발을 몸 쪽으로 최대한 당겨주세요.',
-      '5초 유지한 다음 천천히 놓아주세요.',
+      '양 팔을 어깨 너비로 벌리고 서주세요',
+      '양 손으로 의자를 잡습니다',
+      '천천히 5cm 가량 내려가 주세요',
+      '해당 자세로 5초 유지합니다'
     ],
-    video: require('../assets/vedieo/CPM 어플 가이드동영상/A.mp4'),
-  },
-  {
-    id: 1,
-    title: '의자에 앉아 무릎 굽히기',
-    description: [
-      '의자에 앉아 무릎을 굽혀주세요.',
-      '발뒤꿈치를 바닥에 붙인 상태로 유지합니다.',
-      '10회 반복해주세요.',
-    ],
-    video: require('../assets/vedieo/CPM 어플 가이드동영상/AA.mp4'),
-  },
-  {
-    id: 2,
-    title: '세미 스쿼트',
-    description: [
-      '어깨 너비로 다리를 벌리고 서주세요.',
-      '무릎을 살짝 굽히며 엉덩이를 뒤로 빼주세요.',
-      '5초 유지 후 천천히 일어납니다.',
-    ],
-    video: require('../assets/vedieo/CPM 어플 가이드동영상/AB.mp4'),
+    totalSets: 3,
+    repsPerSet: 2,
+    prepTime: 5,        // 준비 동작 시간 (초)
+    stayTime:5 ,         // 유지시간(초)
+    cooldownTime: 5,    // 마무리 동작 시간 (초)
+    restBetweenSets: 3, // 세트간 휴식 시간 (초)
+    video: require('../assets/video/CPM app guide/A.mp4'),
   },
 ];
