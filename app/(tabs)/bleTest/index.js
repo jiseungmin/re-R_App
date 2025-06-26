@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Button, Alert, Platform, PermissionsAndroid, ScrollView } from 'react-native';
+import {
+  View, Text, FlatList, TouchableOpacity, Button, Alert, Platform, PermissionsAndroid, ScrollView
+} from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 
-const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"; // HLK의 notify UUID
+const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"; // HLK의 Notify UUID
 
 export default function BLETestScreen() {
   const [devices, setDevices] = useState([]);
@@ -74,9 +76,9 @@ export default function BLETestScreen() {
                 return;
               }
               if (char?.value) {
-                // Base64 to UTF8
+                // base64 to utf8
                 let buf = Buffer.from(char.value, 'base64');
-                let str = buf.toString('utf8'); // 필요시 'hex'로
+                let str = buf.toString('utf8');
                 setNotifyData(str);
               }
             });
@@ -94,7 +96,7 @@ export default function BLETestScreen() {
     setConnectingId(null);
   };
 
-  // 초기화/정리
+  // BLE 매니저 초기화/정리
   useEffect(() => {
     managerRef.current = new BleManager();
     return () => {
