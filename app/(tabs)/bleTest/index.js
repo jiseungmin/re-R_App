@@ -5,13 +5,16 @@ import {
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 
-const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"; // HLK의 Notify UUID
+const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"; // HLK Notify UUID
 
 export default function BLETestScreen() {
   const [devices, setDevices] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
-  const [notifyData, setNotifyData] = useState(""); // 데이터 수신 값
+  const [rawData, setRawData] = useState("");       // 원본 hex
+  const [flexion, setFlexion] = useState(null);     // 구부림 각도
+  const [extension, setExtension] = useState(null); // 펴짐 각도
+  const [mode, setMode] = useState(null);           // 동작 모드 (ex: 0x51)
   const [connected, setConnected] = useState(null);
 
   const managerRef = useRef(null);
@@ -54,7 +57,7 @@ export default function BLETestScreen() {
     }, 8000);
   };
 
-  // 연결 + 데이터(Notify) 수신
+  // 연결 + Notify 수신
   const connect = async (device) => {
     setConnectingId(device.id);
     try {
@@ -72,14 +75,32 @@ export default function BLETestScreen() {
             // Notify 구독
             c.monitor((err, char) => {
               if (err) {
-                setNotifyData("Notify 오류");
+                setRawData("Notify 오류");
                 return;
               }
               if (char?.value) {
-                // base64 to utf8
+                // base64 -> buffer
                 let buf = Buffer.from(char.value, 'base64');
-                let str = buf.toString('utf8');
-                setNotifyData(str);
+                // 전체 hex
+                setRawData(buf.toString('hex'));
+                // 패킷 길이 확인
+                if (buf.length >= 10) {
+                  // 예시: [0] 0xff [1] 0xfe [2] id [3] size [4] checksum [5] mode [6] flexion [7] extension
+                  const header = buf.readUInt16BE(0); // 0xFFFE
+                  const id = buf[2];
+                  const size = buf[3];
+                  const checksum = buf[4];
+                  const modeVal = buf[5];
+                  const flexVal = buf[6];
+                  const extVal = buf[7];
+                  setMode(modeVal);
+                  setFlexion(flexVal); // (0~176도)
+                  setExtension(extVal);
+                } else {
+                  setMode(null);
+                  setFlexion(null);
+                  setExtension(null);
+                }
               }
             });
             notifyFound = true;
@@ -130,9 +151,15 @@ export default function BLETestScreen() {
       />
       {/* 데이터 출력 */}
       {connected && (
-        <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 120 }}>
-          <Text style={{ fontWeight: 'bold' }}>Notify 값 (실시간):</Text>
-          <Text>{notifyData}</Text>
+        <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 140 }}>
+          <Text style={{ fontWeight: 'bold' }}>패킷(raw): {rawData}</Text>
+          {mode !== null && (
+            <View style={{marginTop:6}}>
+              <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
+              <Text>Flexion(구부림): {flexion} 도</Text>
+              <Text>Extension(펴짐): {extension} 도</Text>
+            </View>
+          )}
         </ScrollView>
       )}
     </View>
