@@ -5,10 +5,10 @@ import {
   View,
   Text,
   Dimensions,
-  StyleSheet,
   ImageBackground,
   Image,
   TouchableOpacity,
+  StyleSheet,
   FlatList,
   Animated,
   Platform,
@@ -17,10 +17,13 @@ import {
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Buffer polyfill (꼭 필요)
 import { Buffer } from 'buffer';
+if (typeof global.Buffer === 'undefined') global.Buffer = Buffer;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SERVICE_UUID = null; // All service scan
+// 실제 기기용 UUID
 const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
@@ -58,7 +61,6 @@ export default function Device() {
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
       ]);
     }
-    // iOS는 plist에 기입 필요
   };
 
   // BLE 스캔 시작 (기기 누적형)
@@ -102,34 +104,58 @@ export default function Device() {
       await connected.discoverAllServicesAndCharacteristics();
       setConnectedDevice(connected);
 
-      // 특성 찾기
+      // 서비스/캐릭터리스틱 탐색 및 프로퍼티 체크
       const services = await connected.services();
-      let write = null;
+      let foundNotify = null, foundWrite = null;
       for (const svc of services) {
         const chars = await svc.characteristics();
         for (const c of chars) {
-          if (c.uuid.toUpperCase() === CHAR_UUID_NOTIFY) {
-            // Notify 구독
-            c.monitor((err, char) => {
-              if (err) {
-                setNotifyValue("Notify 오류");
-                return;
-              }
-              if (char?.value) {
-                // 디바이스->모바일: 4byte,  문자열 or hex 표시
-                let buf = Buffer.from(char.value, 'base64');
-                let str = buf.toString('utf8');
-                setNotifyValue(str);
-              }
-            });
+          if (
+            c.uuid.toUpperCase() === CHAR_UUID_NOTIFY &&
+            (c.isNotifiable || (c.properties || '').includes('Notify'))
+          ) {
+            foundNotify = c;
           }
-          if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) {
-            write = c;
+          if (
+            c.uuid.toUpperCase() === CHAR_UUID_WRITE &&
+            (c.isWritableWithResponse || c.isWritableWithoutResponse || (c.properties || '').includes('Write'))
+          ) {
+            foundWrite = c;
           }
         }
       }
-      if (write) setWriteChar(write);
-      else setWriteChar(null);
+      // notify 특성 반드시 확인
+      if (!foundNotify) {
+        Alert.alert("Notify 특성 없음", "알림을 지원하는 FFF1 캐릭터리스틱을 찾지 못했습니다.");
+      } else {
+        foundNotify.monitor((err, char) => {
+          if (err) {
+            setNotifyValue("Notify 오류");
+            return;
+          }
+          if (char?.value) {
+            try {
+              let buf = Buffer.from(char.value, 'base64');
+              // 문자 데이터로 변환 (실패 시 hex로 fallback)
+              let str;
+              try {
+                str = buf.toString('utf8');
+                // 가독성이 없으면 hex fallback
+                if (/^[\x00-\x1F\x7F-\x9F]*$/.test(str)) str = buf.toString('hex');
+              } catch {
+                str = buf.toString('hex');
+              }
+              setNotifyValue(str);
+            } catch (e) {
+              setNotifyValue("수신 변환 오류");
+            }
+          }
+        });
+      }
+      if (!foundWrite) {
+        Alert.alert("Write 특성 없음", "쓰기 가능한 FFF2 캐릭터리스틱을 찾지 못했습니다.");
+      }
+      setWriteChar(foundWrite || null);
     } catch (e) {
       Alert.alert('연결 실패', e?.message || "BLE 연결 오류");
     }
@@ -140,7 +166,6 @@ export default function Device() {
   const sendStart = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      // 프로토콜: 0xaa,0x64,0x01,0x02,0xd1
       const arr = [0xaa,0x64,0x01,0x02,0xd1];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
@@ -153,7 +178,6 @@ export default function Device() {
   const sendStop = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      // 프로토콜: 0xaa,0x64,0x00,0x02,0xd4 (변경후)
       const arr = [0xaa,0x64,0x00,0x02,0xd4];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
@@ -206,7 +230,6 @@ export default function Device() {
           resizeMode="contain"
         />
       </ImageBackground>
-
       {/* 검색 중 안내 */}
       {scanning ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -251,7 +274,6 @@ export default function Device() {
           />
         </ImageBackground>
       )}
-
       {/* 연결 상태 및 명령 송신/Notify 표시 */}
       {connectedDevice && (
         <View style={[styles.dataContainer, { marginBottom: insets.bottom + 16 }]}>
@@ -279,6 +301,7 @@ export default function Device() {
     </SafeAreaView>
   );
 }
+
 
 
 const styles = StyleSheet.create({
