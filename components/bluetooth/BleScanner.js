@@ -25,13 +25,12 @@ export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
       found.clear();
       manager.startDeviceScan(null, null, (err, device) => {
         if (err) return console.warn('BLE Scan Error', err);
-        if (device && device.name && !found.has(device.id)) {
+        if (device && !found.has(device.id)) {
           found.set(device.id, {
             id: device.id,
-            name: device.name,
+            name: device.name || '(No Name)',
             address: device.id,
           });
-          // 매번 호출 → 부모에서 덮어쓰기
           onDevicesFound(Array.from(found.values()));
         }
       });
