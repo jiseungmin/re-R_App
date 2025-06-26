@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   View,
@@ -13,21 +13,27 @@ import {
   Animated,
   Platform,
   PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Buffer } from 'buffer';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SERVICE_UUID = null; // All service scan
+const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
+const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
 export default function Device() {
   const [devices, setDevices] = useState([]);
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
+  const [notifyValue, setNotifyValue] = useState('');
+  const [writeChar, setWriteChar] = useState(null);
 
   const spinValue = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
-
   const managerRef = useRef(null);
 
   // 스핀 애니메이션
@@ -59,6 +65,8 @@ export default function Device() {
   const startScan = async () => {
     setDevices([]);
     setConnectedDevice(null);
+    setNotifyValue('');
+    setWriteChar(null);
     setScanning(true);
     runStutterSpin();
 
@@ -68,6 +76,7 @@ export default function Device() {
     managerRef.current.startDeviceScan(null, null, (error, device) => {
       if (error) {
         setScanning(false);
+        Alert.alert("스캔 오류", error.message);
         return;
       }
       if (device && device.id) {
@@ -84,18 +93,74 @@ export default function Device() {
     }, 10000);
   };
 
-  // 기기 연결
+  // 기기 연결 및 서비스/특성 탐색
   const connectToDevice = async (device) => {
     setConnectingId(device.id);
     try {
       if (!managerRef.current) managerRef.current = new BleManager();
       const connected = await managerRef.current.connectToDevice(device.id, {autoConnect: true});
+      await connected.discoverAllServicesAndCharacteristics();
       setConnectedDevice(connected);
-      // 서비스/특성 탐색 필요 시 추가
+
+      // 특성 찾기
+      const services = await connected.services();
+      let write = null;
+      for (const svc of services) {
+        const chars = await svc.characteristics();
+        for (const c of chars) {
+          if (c.uuid.toUpperCase() === CHAR_UUID_NOTIFY) {
+            // Notify 구독
+            c.monitor((err, char) => {
+              if (err) {
+                setNotifyValue("Notify 오류");
+                return;
+              }
+              if (char?.value) {
+                // 디바이스->모바일: 4byte,  문자열 or hex 표시
+                let buf = Buffer.from(char.value, 'base64');
+                let str = buf.toString('utf8');
+                setNotifyValue(str);
+              }
+            });
+          }
+          if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) {
+            write = c;
+          }
+        }
+      }
+      if (write) setWriteChar(write);
+      else setWriteChar(null);
     } catch (e) {
-      alert('연결 실패: ' + e?.message);
+      Alert.alert('연결 실패', e?.message || "BLE 연결 오류");
     }
     setConnectingId(null);
+  };
+
+  // START/STOP 명령 보내기
+  const sendStart = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      // 프로토콜: 0xaa,0x64,0x01,0x02,0xd1
+      const arr = [0xaa,0x64,0x01,0x02,0xd1];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('전송 완료', 'START 프로토콜 전송!');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Start 전송 오류');
+    }
+  };
+
+  const sendStop = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      // 프로토콜: 0xaa,0x64,0x00,0x02,0xd4 (변경후)
+      const arr = [0xaa,0x64,0x00,0x02,0xd4];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('전송 완료', 'STOP 프로토콜 전송!');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Stop 전송 오류');
+    }
   };
 
   // 새로고침 버튼
@@ -187,11 +252,28 @@ export default function Device() {
         </ImageBackground>
       )}
 
-      {/* 연결 상태 */}
+      {/* 연결 상태 및 명령 송신/Notify 표시 */}
       {connectedDevice && (
         <View style={[styles.dataContainer, { marginBottom: insets.bottom + 16 }]}>
           <Text style={styles.dataTitle}>연결됨: {connectedDevice.name || '(No Name)'}</Text>
           <Text style={styles.dataText}>ID: {connectedDevice.id}</Text>
+          <Text style={styles.dataText}>Notify 값: {notifyValue}</Text>
+          <View style={{flexDirection:'row', marginTop:8}}>
+            <TouchableOpacity
+              onPress={sendStart}
+              style={{backgroundColor:'#22c55e',borderRadius:8,padding:8,marginRight:8}}
+              disabled={!writeChar}
+            >
+              <Text style={{color:'#fff'}}>START</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={sendStop}
+              style={{backgroundColor:'#e11d48',borderRadius:8,padding:8}}
+              disabled={!writeChar}
+            >
+              <Text style={{color:'#fff'}}>STOP</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </SafeAreaView>

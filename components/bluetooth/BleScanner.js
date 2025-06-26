@@ -1,6 +1,5 @@
-// components/bluetooth/BleScanner.js
 import { useEffect, useRef } from 'react';
-import { Platform, PermissionsAndroid } from 'react-native';
+import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
@@ -21,22 +20,27 @@ export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
     };
 
     const startScan = async () => {
-      await requestPermissions();
-      found.clear();
-      manager.startDeviceScan(null, null, (err, device) => {
-        if (err) return console.warn('BLE Scan Error', err);
-        if (device && !found.has(device.id)) {
-          found.set(device.id, {
-            id: device.id,
-            name: device.name || '(No Name)',
-            address: device.id,
-          });
-          onDevicesFound(Array.from(found.values()));
-        }
-      });
-
-      // 지정 시간 후 스캔 중단
-      setTimeout(() => manager.stopDeviceScan(), scanTimeout);
+      try {
+        await requestPermissions();
+        found.clear();
+        manager.startDeviceScan(null, null, (err, device) => {
+          if (err) {
+            Alert.alert("스캔 오류", err.message || String(err));
+            return;
+          }
+          if (device && !found.has(device.id)) {
+            found.set(device.id, {
+              id: device.id,
+              name: device.name || '(No Name)',
+              address: device.id,
+            });
+            onDevicesFound(Array.from(found.values()));
+          }
+        });
+        setTimeout(() => manager.stopDeviceScan(), scanTimeout);
+      } catch (e) {
+        Alert.alert("BLE 오류", e.message || String(e));
+      }
     };
 
     startScan();
