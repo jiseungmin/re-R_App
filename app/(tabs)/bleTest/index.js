@@ -1,21 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, Button, Alert, Platform, PermissionsAndroid, ScrollView
+  View, Text, FlatList, TouchableOpacity, Button, Alert, Platform, PermissionsAndroid, ScrollView, Modal
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 
-const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB"; // HLK Notify UUID
+const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
+const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
 export default function BLETestScreen() {
   const [devices, setDevices] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
-  const [rawData, setRawData] = useState("");       // 원본 hex
-  const [flexion, setFlexion] = useState(null);     // 구부림 각도
-  const [extension, setExtension] = useState(null); // 펴짐 각도
-  const [mode, setMode] = useState(null);           // 동작 모드 (ex: 0x51)
+  const [rawData, setRawData] = useState("");
+  const [flexion, setFlexion] = useState(null);
+  const [extension, setExtension] = useState(null);
+  const [mode, setMode] = useState(null);
   const [connected, setConnected] = useState(null);
+  const [showControl, setShowControl] = useState(false);
+  const [writeChar, setWriteChar] = useState(null);
 
   const managerRef = useRef(null);
 
@@ -57,7 +60,7 @@ export default function BLETestScreen() {
     }, 8000);
   };
 
-  // 연결 + Notify 수신
+  // 연결 + Notify 구독 + WriteChar 찾기
   const connect = async (device) => {
     setConnectingId(device.id);
     try {
@@ -65,9 +68,11 @@ export default function BLETestScreen() {
       const connectedDevice = await managerRef.current.connectToDevice(device.id, { autoConnect: true });
       await connectedDevice.discoverAllServicesAndCharacteristics();
 
-      // 모든 서비스 → 모든 캐릭터리스틱 → Notify UUID 찾기
+      // 모든 서비스 → 캐릭터리스틱
       const services = await connectedDevice.services();
       let notifyFound = false;
+      let writeFound = null;
+
       for (const svc of services) {
         const chars = await svc.characteristics();
         for (const c of chars) {
@@ -79,22 +84,14 @@ export default function BLETestScreen() {
                 return;
               }
               if (char?.value) {
-                // base64 -> buffer
                 let buf = Buffer.from(char.value, 'base64');
-                // 전체 hex
                 setRawData(buf.toString('hex'));
-                // 패킷 길이 확인
                 if (buf.length >= 10) {
-                  // 예시: [0] 0xff [1] 0xfe [2] id [3] size [4] checksum [5] mode [6] flexion [7] extension
-                  const header = buf.readUInt16BE(0); // 0xFFFE
-                  const id = buf[2];
-                  const size = buf[3];
-                  const checksum = buf[4];
                   const modeVal = buf[5];
                   const flexVal = buf[6];
                   const extVal = buf[7];
                   setMode(modeVal);
-                  setFlexion(flexVal); // (0~176도)
+                  setFlexion(flexVal);
                   setExtension(extVal);
                 } else {
                   setMode(null);
@@ -105,16 +102,45 @@ export default function BLETestScreen() {
             });
             notifyFound = true;
           }
+          if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) {
+            writeFound = c;
+          }
         }
       }
+      setWriteChar(writeFound);
       setConnected(connectedDevice);
+      setShowControl(true);
       if (!notifyFound) Alert.alert("Notify UUID 미발견", "Notify 캐릭터리스틱이 없습니다.");
-      else Alert.alert('연결 성공', device.name || device.id);
     } catch (e) {
       Alert.alert('연결 실패', e?.message || '알 수 없는 오류');
       setConnected(null);
     }
     setConnectingId(null);
+  };
+
+  // START 명령
+  const sendStart = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      const arr = [0xaa, 0x64, 0x01, 0x02, 0xd1];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('START', 'START 명령 전송 완료');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Start 전송 오류');
+    }
+  };
+  // STOP 명령
+  const sendStop = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      const arr = [0xaa, 0x64, 0x00, 0x02, 0xd4];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('STOP', 'STOP 명령 전송 완료');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Stop 전송 오류');
+    }
   };
 
   // BLE 매니저 초기화/정리
@@ -149,6 +175,7 @@ export default function BLETestScreen() {
         )}
         ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>검색 결과 없음</Text>}
       />
+
       {/* 데이터 출력 */}
       {connected && (
         <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 140 }}>
@@ -162,6 +189,40 @@ export default function BLETestScreen() {
           )}
         </ScrollView>
       )}
+
+      {/* 연결 후 제어용 Modal */}
+      <Modal
+        visible={showControl}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowControl(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.2)'
+        }}>
+          <View style={{
+            backgroundColor: '#fff', padding: 24, borderRadius: 14, minWidth: 260, alignItems: 'center'
+          }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>BLE 장치 제어</Text>
+            {/* 실시간 각도/모드 출력 */}
+            {mode !== null && (
+              <View style={{marginBottom: 12, alignItems: 'center'}}>
+                <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
+                <Text>Flexion(구부림): {flexion} 도</Text>
+                <Text>Extension(펴짐): {extension} 도</Text>
+              </View>
+            )}
+            <Button title="START 명령 전송" onPress={sendStart} disabled={!writeChar}/>
+            <View style={{ height: 8 }} />
+            <Button title="STOP 명령 전송" onPress={sendStop} disabled={!writeChar}/>
+            <View style={{ height: 14 }} />
+            <Button title="닫기" color="#aaa" onPress={() => setShowControl(false)} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
