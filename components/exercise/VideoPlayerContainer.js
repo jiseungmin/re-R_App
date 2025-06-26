@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 import { useVideoPlayer } from 'expo-video';
+import { useIsFocused } from '@react-navigation/native';
+
 
 export default function VideoPlayerContainer({
   videoSource,
@@ -25,6 +27,7 @@ export default function VideoPlayerContainer({
   const stoppedRef = useRef(stopped);
   const isRestingRef = useRef(isResting);
   const restCountdownRef = useRef(restCountdown);
+  const isFocused = useIsFocused();
 
   useEffect(() => { repRef.current = currentRep; }, [currentRep]);
   useEffect(() => { setRef.current = currentSet; }, [currentSet]);
@@ -38,6 +41,11 @@ export default function VideoPlayerContainer({
     p.play();
     console.log('[PLAYER INIT] Video player initialized and playing');
   });
+
+  useEffect(() => {
+  if (!isFocused) setPaused(true);
+}, [isFocused]);
+
 
   // 휴식 타이머 관리
   useEffect(() => {

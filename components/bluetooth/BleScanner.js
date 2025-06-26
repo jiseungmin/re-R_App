@@ -1,3 +1,4 @@
+// components/bluetooth/BleScanner.js
 import { useEffect, useRef } from 'react';
 import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
@@ -29,11 +30,8 @@ export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
             return;
           }
           if (device && !found.has(device.id)) {
-            found.set(device.id, {
-              id: device.id,
-              name: device.name || '(No Name)',
-              address: device.id,
-            });
+            found.set(device.id, device);
+            // onDevicesFound에 객체 배열로 전달
             onDevicesFound(Array.from(found.values()));
           }
         });

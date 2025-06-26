@@ -1,285 +1,131 @@
-import { Stack } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Dimensions,
-  ImageBackground,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Animated,
-  Platform,
-  PermissionsAndroid,
-  Alert,
-} from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Button, Alert, ScrollView, Modal, StyleSheet, Dimensions } from 'react-native';
+import BleScanner from '../../../components/bluetooth/BleScanner';
 import { BleManager } from 'react-native-ble-plx';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// Buffer polyfill (꼭 필요)
 import { Buffer } from 'buffer';
+
+// Buffer polyfill (Expo 환경)
 if (typeof global.Buffer === 'undefined') global.Buffer = Buffer;
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-// 실제 기기용 UUID
 const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
 export default function Device() {
   const [devices, setDevices] = useState([]);
-  const [connectedDevice, setConnectedDevice] = useState(null);
-  const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
-  const [notifyValue, setNotifyValue] = useState('');
+  const [rawData, setRawData] = useState('');
+  const [flexion, setFlexion] = useState(null);
+  const [extension, setExtension] = useState(null);
+  const [mode, setMode] = useState(null);
+  const [connected, setConnected] = useState(null);
   const [writeChar, setWriteChar] = useState(null);
+  const [showControl, setShowControl] = useState(false);
 
-  const spinValue = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
-  const managerRef = useRef(null);
+  const managerRef = useRef(new BleManager());
 
-  // 스핀 애니메이션
-  const runStutterSpin = () => {
-    spinValue.setValue(0);
-    Animated.sequence([
-      Animated.timing(spinValue, { toValue: 60, duration: 300, useNativeDriver: true }),
-      Animated.delay(100),
-      Animated.timing(spinValue, { toValue: 180, duration: 300, useNativeDriver: true }),
-      Animated.delay(100),
-      Animated.timing(spinValue, { toValue: 360, duration: 400, useNativeDriver: true }),
-    ]).start();
-  };
-  const spin = spinValue.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'] });
-
-  // 권한 요청
-  const requestPermissions = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      ]);
-    }
-  };
-
-  // BLE 스캔 시작 (기기 누적형)
-  const startScan = async () => {
-    setDevices([]);
-    setConnectedDevice(null);
-    setNotifyValue('');
-    setWriteChar(null);
-    setScanning(true);
-    runStutterSpin();
-
-    if (!managerRef.current) managerRef.current = new BleManager();
-    await requestPermissions();
-
-    managerRef.current.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        setScanning(false);
-        Alert.alert("스캔 오류", error.message);
-        return;
-      }
-      if (device && device.id) {
-        setDevices(prev => {
-          if (prev.find(d => d.id === device.id)) return prev;
-          return [...prev, device];
-        });
-      }
-    });
-
-    setTimeout(() => {
-      managerRef.current?.stopDeviceScan();
-      setScanning(false);
-    }, 10000);
-  };
-
-  // 기기 연결 및 서비스/특성 탐색
-  const connectToDevice = async (device) => {
+  // BLE 연결 및 데이터 수신
+  const connect = async (device) => {
     setConnectingId(device.id);
     try {
-      if (!managerRef.current) managerRef.current = new BleManager();
-      const connected = await managerRef.current.connectToDevice(device.id, {autoConnect: true});
-      await connected.discoverAllServicesAndCharacteristics();
-      setConnectedDevice(connected);
+      const connectedDevice = await managerRef.current.connectToDevice(device.id, { autoConnect: true });
+      await connectedDevice.discoverAllServicesAndCharacteristics();
 
-      // 서비스/캐릭터리스틱 탐색 및 프로퍼티 체크
-      const services = await connected.services();
+      const services = await connectedDevice.services();
       let foundNotify = null, foundWrite = null;
       for (const svc of services) {
         const chars = await svc.characteristics();
         for (const c of chars) {
-          if (
-            c.uuid.toUpperCase() === CHAR_UUID_NOTIFY &&
-            (c.isNotifiable || (c.properties || '').includes('Notify'))
-          ) {
-            foundNotify = c;
-          }
-          if (
-            c.uuid.toUpperCase() === CHAR_UUID_WRITE &&
-            (c.isWritableWithResponse || c.isWritableWithoutResponse || (c.properties || '').includes('Write'))
-          ) {
-            foundWrite = c;
-          }
+          if (c.uuid.toUpperCase() === CHAR_UUID_NOTIFY) foundNotify = c;
+          if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) foundWrite = c;
         }
       }
-      // notify 특성 반드시 확인
-      if (!foundNotify) {
-        Alert.alert("Notify 특성 없음", "알림을 지원하는 FFF1 캐릭터리스틱을 찾지 못했습니다.");
-      } else {
+      if (foundNotify) {
         foundNotify.monitor((err, char) => {
           if (err) {
-            setNotifyValue("Notify 오류");
-            return;
+            setRawData("Notify 오류");
+            setFlexion(null); setExtension(null); setMode(null); return;
           }
           if (char?.value) {
-            try {
-              let buf = Buffer.from(char.value, 'base64');
-              // 문자 데이터로 변환 (실패 시 hex로 fallback)
-              let str;
-              try {
-                str = buf.toString('utf8');
-                // 가독성이 없으면 hex fallback
-                if (/^[\x00-\x1F\x7F-\x9F]*$/.test(str)) str = buf.toString('hex');
-              } catch {
-                str = buf.toString('hex');
-              }
-              setNotifyValue(str);
-            } catch (e) {
-              setNotifyValue("수신 변환 오류");
+            let buf = Buffer.from(char.value, 'base64');
+            setRawData(buf.toString('hex'));
+            if (buf.length >= 10) {
+              setMode(buf[5]);
+              setFlexion(buf[6]);
+              setExtension(buf[7]);
+            } else {
+              setMode(null); setFlexion(null); setExtension(null);
             }
           }
         });
       }
-      if (!foundWrite) {
-        Alert.alert("Write 특성 없음", "쓰기 가능한 FFF2 캐릭터리스틱을 찾지 못했습니다.");
-      }
       setWriteChar(foundWrite || null);
+      setConnected(connectedDevice);
+      setShowControl(true);
     } catch (e) {
-      Alert.alert('연결 실패', e?.message || "BLE 연결 오류");
+      Alert.alert('연결 실패', e?.message || 'BLE 연결 오류');
+      setConnected(null);
     }
     setConnectingId(null);
   };
 
-  // START/STOP 명령 보내기
+  // START/STOP 명령
   const sendStart = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      const arr = [0xaa,0x64,0x01,0x02,0xd1];
+      const arr = [0xaa, 0x64, 0x01, 0x02, 0xd1];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
-      Alert.alert('전송 완료', 'START 프로토콜 전송!');
+      Alert.alert('START', 'START 명령 전송 완료');
     } catch (e) {
       Alert.alert('전송 실패', e?.message || 'Start 전송 오류');
     }
   };
-
   const sendStop = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      const arr = [0xaa,0x64,0x00,0x02,0xd4];
+      const arr = [0xaa, 0x64, 0x00, 0x02, 0xd4];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
-      Alert.alert('전송 완료', 'STOP 프로토콜 전송!');
+      Alert.alert('STOP', 'STOP 명령 전송 완료');
     } catch (e) {
       Alert.alert('전송 실패', e?.message || 'Stop 전송 오류');
     }
   };
 
-  // 새로고침 버튼
-  const onRefresh = () => {
-    startScan();
-  };
-
-  // 언마운트 시 BLE 매니저 정리
-  useEffect(() => {
-    managerRef.current = new BleManager();
-    return () => {
-      managerRef.current?.destroy();
-    };
-  }, []);
-
-  // 첫 진입시 자동 스캔
-  useEffect(() => {
-    startScan();
-  }, []);
-
+  // 화면 구성
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
-      {/* 헤더 */}
-      <ImageBackground
-        source={require('../../../assets/images/그룹 5312.png')}
-        style={styles.header}
-        imageStyle={styles.headerBg}
-      >
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>기기정보</Text>
-          <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-            <Animated.Image
-              source={require('../../../assets/images/그룹 3870.png')}
-              style={[styles.refreshIcon, { transform: [{ rotate: spin }] }]}
-            />
-            <Text style={styles.refreshText}>다시 검색</Text>
+    <View style={{ flex: 1, paddingTop: 48 }}>
+      {/* BLE Scanner - 스캔만 */}
+      <BleScanner onDevicesFound={setDevices} scanTimeout={8000} />
+
+      <FlatList
+        data={devices}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => connect(item)}
+            disabled={!!connectingId}
+            style={{ padding: 20, borderBottomWidth: 1, borderColor: '#ddd' }}
+          >
+            <Text>{item.name || '(No Name)'}</Text>
+            <Text style={{ fontSize: 12, color: '#888' }}>{item.id}</Text>
+            {connectingId === item.id && <Text style={{ color: 'green' }}>연결 중...</Text>}
           </TouchableOpacity>
-        </View>
-        <Image
-          source={require('../../../assets/images/mobile.png')}
-          style={styles.phoneIcon}
-          resizeMode="contain"
-        />
-      </ImageBackground>
-      {/* 검색 중 안내 */}
-      {scanning ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text>기기 검색 중...</Text>
-        </View>
-      ) : (
-        // 기기 리스트
-        <ImageBackground
-          source={require('../../../assets/images/사각형 2154.png')}
-          style={styles.listBg}
-          imageStyle={styles.listRadius}
-        >
-          <FlatList
-            data={devices}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.cardBg,
-                  connectedDevice && connectedDevice.id === item.id && { backgroundColor: '#d9f99d' }
-                ]}
-                onPress={() => connectToDevice(item)}
-                activeOpacity={0.7}
-                disabled={connectingId || (connectedDevice && connectedDevice.id === item.id)}
-              >
-                <View style={styles.deviceCard}>
-                  <Image
-                    source={require('../../../assets/images/phone.png')}
-                    style={styles.deviceIcon}
-                  />
-                  <View style={styles.deviceInfo}>
-                    <Text style={styles.deviceName}>{item.name || '(No Name)'}</Text>
-                    <Text style={styles.deviceAddress}>{item.id}</Text>
-                    {connectingId === item.id && <Text style={{color:'#34d399'}}>연결 중...</Text>}
-                    {connectedDevice && connectedDevice.id === item.id && <Text style={{color:'#22c55e'}}>연결됨</Text>}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={<Text style={{ textAlign:'center', marginTop:24 }}>기기를 찾을 수 없습니다.</Text>}
-          />
-        </ImageBackground>
-      )}
-      {/* 연결 상태 및 명령 송신/Notify 표시 */}
-      {connectedDevice && (
-        <View style={[styles.dataContainer, { marginBottom: insets.bottom + 16 }]}>
-          <Text style={styles.dataTitle}>연결됨: {connectedDevice.name || '(No Name)'}</Text>
-          <Text style={styles.dataText}>ID: {connectedDevice.id}</Text>
-          <Text style={styles.dataText}>Notify 값: {notifyValue}</Text>
+        )}
+        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>검색 결과 없음</Text>}
+      />
+
+      {/* 데이터 출력 */}
+      {connected && (
+        <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 140 }}>
+          <Text style={{ fontWeight: 'bold' }}>패킷(raw): {rawData}</Text>
+          {mode !== null && (
+            <View style={{marginTop:6}}>
+              <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
+              <Text>Flexion(구부림): {flexion} 도</Text>
+              <Text>Extension(펴짐): {extension} 도</Text>
+            </View>
+          )}
           <View style={{flexDirection:'row', marginTop:8}}>
             <TouchableOpacity
               onPress={sendStart}
@@ -296,111 +142,41 @@ export default function Device() {
               <Text style={{color:'#fff'}}>STOP</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       )}
-    </SafeAreaView>
+
+      {/* Modal: BLE 컨트롤용 */}
+      <Modal
+        visible={showControl}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowControl(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.2)'
+        }}>
+          <View style={{
+            backgroundColor: '#fff', padding: 24, borderRadius: 14, minWidth: 260, alignItems: 'center'
+          }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>BLE 장치 제어</Text>
+            {mode !== null && (
+              <View style={{marginBottom: 12, alignItems: 'center'}}>
+                <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
+                <Text>Flexion(구부림): {flexion} 도</Text>
+                <Text>Extension(펴짐): {extension} 도</Text>
+              </View>
+            )}
+            <Button title="START 명령 전송" onPress={sendStart} disabled={!writeChar}/>
+            <View style={{ height: 8 }} />
+            <Button title="STOP 명령 전송" onPress={sendStop} disabled={!writeChar}/>
+            <View style={{ height: 14 }} />
+            <Button title="닫기" color="#aaa" onPress={() => setShowControl(false)} />
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
-
-
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-
-  header: {
-    width: SCREEN_WIDTH,
-    aspectRatio: 375 / 180,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  headerBg: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  headerLeft: { flexDirection: 'column' },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '400',
-    marginTop: 30,
-  },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginTop: 10,
-  },
-  refreshIcon: {
-    width: 16,
-    height: 16,
-    marginRight: 6,
-    resizeMode: 'contain',
-  },
-  refreshText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  phoneIcon: {
-    width: '60%',
-    height: '60%',
-    marginTop: 16,
-    marginRight: -50,
-  },
-
-  listBg: {
-    flex: 1,
-    margin: 10,
-    paddingTop: 16,
-  },
-  listRadius: {
-    borderRadius: 16,
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-
-  cardBg: {
-    backgroundColor: '#f7f7f7',
-    borderRadius: 12,
-    padding: 12,
-    marginVertical: 6,
-    height: 64,
-    justifyContent: 'center',
-  },
-  deviceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deviceIcon: {
-    width: 32,
-    height: 32,
-    marginRight: 12,
-    resizeMode: 'contain',
-  },
-  deviceInfo: { flex: 1 },
-  deviceName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  deviceAddress: {
-    fontSize: 10,
-    color: '#666',
-    marginTop: 2,
-  },
-
-  dataContainer: {
-    padding: 16,
-    backgroundColor: '#eef',
-    marginHorizontal: 10,
-    borderRadius: 10,
-  },
-  dataTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  dataText: { fontSize: 12, color: '#333', marginBottom: 8 },
-});
