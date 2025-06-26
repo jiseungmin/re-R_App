@@ -26,6 +26,7 @@ export default function VideoPlayerUI({
   stopped,
   setPaused,
   setStopped,
+  onSkip,
   insets,
   exercise,
   pauseOverlayData,
@@ -77,6 +78,13 @@ export default function VideoPlayerUI({
             <Text style={styles.counterText}>{`${currentRep}/${repsPerSet}회`}</Text>
           </View>
         </View>
+            <View>
+      {/* 기존 영상, 컨트롤 버튼 등 */}
+      <TouchableOpacity onPress={onSkip}>
+        <Text style={{ color: '#e74c3c', fontWeight: 'bold', margin: 16 }}>건너뛰기</Text>
+      </TouchableOpacity>
+    </View>
+
         {!paused && !stopped && (
           <TouchableOpacity onPress={togglePlay} style={styles.iconButton}>
             <Image

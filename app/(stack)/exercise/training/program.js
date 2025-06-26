@@ -1,13 +1,7 @@
 import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  ImageBackground,
-  Text,
-  TouchableOpacity,
-  Dimensions,
+  SafeAreaView, StyleSheet, ScrollView, ImageBackground, Text, TouchableOpacity, Dimensions,
 } from 'react-native';
-import { useRouter} from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../../../components/ui/Header';
 import { EXERCISES } from '../../../../constants/Exercises_info';
@@ -38,7 +32,11 @@ export default function Program() {
 
       <TouchableOpacity
         style={[styles.bottomFixedButton, { bottom: insets.bottom + 16 }]}
-        onPress={() => router.push(`/exercise/training/detail/${EXERCISES[0].id}`)}
+        // step, skipped(빈 배열) 전달
+        onPress={() => router.push({
+          pathname: `/exercise/training/detail/${EXERCISES[0].id}`,
+          params: { step: 0, skipped: JSON.stringify([]) }
+        })}
       >
         <ImageBackground
           source={require('../../../../assets/images/사각형 4.png')}

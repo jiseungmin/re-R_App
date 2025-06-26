@@ -3,12 +3,11 @@ import { View, Text } from 'react-native';
 import { useVideoPlayer } from 'expo-video';
 import { useIsFocused } from '@react-navigation/native';
 
-
 export default function VideoPlayerContainer({
   videoSource,
-  repsPerSet=1,
-  totalSets =1,
-  restTime = 1, // 휴식 시간 (초)
+  repsPerSet = 1,
+  totalSets = 1,
+  restTime = 1,
   onComplete,
   render,
 }) {
@@ -19,8 +18,11 @@ export default function VideoPlayerContainer({
   const [stopped, setStopped] = useState(false);
   const [isResting, setIsResting] = useState(false);
   const [restCountdown, setRestCountdown] = useState(0);
+  const [playCount, setPlayCount] = useState(0); // 추가: 전체 플레이 횟수
 
-  // refs 최신 상태 유지용
+  const playCountRef = useRef(0);
+  useEffect(() => { playCountRef.current = playCount }, [playCount]);
+
   const repRef = useRef(currentRep);
   const setRef = useRef(currentSet);
   const pausedRef = useRef(paused);
@@ -43,9 +45,8 @@ export default function VideoPlayerContainer({
   });
 
   useEffect(() => {
-  if (!isFocused) setPaused(true);
-}, [isFocused]);
-
+    if (!isFocused) setPaused(true);
+  }, [isFocused]);
 
   // 휴식 타이머 관리
   useEffect(() => {
@@ -57,7 +58,8 @@ export default function VideoPlayerContainer({
         if (prev <= 1) {
           clearInterval(interval);
           // 휴식 종료 처리 (딜레이 줘서 play 안정화)
-          const nextSet = setRef.current + 1;
+          const totalRepsDone = playCountRef.current;
+          const nextSet = Math.floor(totalRepsDone / repsPerSet) + 1;
           console.log(`[REST END] Rest complete. Move to set ${nextSet}, reset rep to 1.`);
           setCurrentSet(nextSet);
           setCurrentRep(1);
@@ -74,11 +76,13 @@ export default function VideoPlayerContainer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isResting, restTime, player]);
+  }, [isResting, restTime, player, repsPerSet]);
 
-  // 영상 종료 시 반복 및 세트 증가 처리
+  // 영상 종료 시 반복 및 세트 증가 처리 (카운트 기반)
   useEffect(() => {
     if (!player) return;
+
+    const targetCount = repsPerSet * totalSets;
 
     const statusSub = player.addListener('statusChange', ({ status }) => {
       console.log(`[PLAYER STATUS] status: ${status}`);
@@ -93,26 +97,36 @@ export default function VideoPlayerContainer({
     });
 
     const endSub = player.addListener('playToEnd', () => {
-      console.log(`[VIDEO END] Set ${setRef.current}, Rep ${repRef.current}`);
+      setPlayCount(prev => {
+        const newCount = prev + 1;
+        console.log('--- playToEnd ---', newCount, '/', targetCount);
 
-      if (repRef.current < repsPerSet) {
-        const nextRep = repRef.current + 1;
-        console.log(`[REPEAT] Increment rep: ${repRef.current} -> ${nextRep}`);
-        setCurrentRep(nextRep);
+        if (newCount >= targetCount) {
+          console.log('=== EXERCISE COMPLETE: call onComplete() ===');
+          player.pause();
+          if (onComplete) onComplete();
+          return newCount;
+        }
+
+        // 다음 세트/반복 표시 (원래대로 진행)
+        const totalRepsDone = newCount;
+        const currentSetNum = Math.floor(totalRepsDone / repsPerSet) + 1;
+        const currentRepNum = (totalRepsDone % repsPerSet) + 1;
+        setCurrentSet(currentSetNum > totalSets ? totalSets : currentSetNum);
+        setCurrentRep(currentRepNum > repsPerSet ? repsPerSet : currentRepNum);
+
+        // 마지막 반복이 아니라면 플레이 재개
         player.currentTime = 0;
         player.play();
-      } else if (setRef.current < totalSets) {
-        console.log(`[SET COMPLETE] Set ${setRef.current} complete. Start rest for ${restTime}s`);
-        setIsResting(true);
-        setPaused(true);
-        player.pause();
-      } else {
-        console.log('[EXERCISE COMPLETE] All sets and reps finished');
-        setPaused(true);
-        setStopped(true);
-        player.pause();
-        if (onComplete) onComplete();
-      }
+
+        // 세트 마지막 반복이면 휴식 타임
+        if (currentRepNum === repsPerSet && currentSetNum <= totalSets && currentSetNum !== 1 && newCount < targetCount) {
+          setIsResting(true);
+          setPaused(true);
+          player.pause();
+        }
+        return newCount;
+      });
     });
 
     return () => {
@@ -144,6 +158,7 @@ export default function VideoPlayerContainer({
     setStopped(false);
     setIsResting(false);
     setRestCountdown(0);
+    setPlayCount(0); // 카운트도 초기화
     console.log('[STATE RESET] Video source changed - Resetting state');
     console.log('[NEW VIDEO SOURCE]', videoSource);
   }, [videoSource]);
@@ -175,7 +190,7 @@ export default function VideoPlayerContainer({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'rgb(0, 0, 0)',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 1000,
