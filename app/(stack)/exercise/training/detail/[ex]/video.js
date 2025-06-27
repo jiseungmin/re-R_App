@@ -40,7 +40,8 @@ const goNextDetail = () => {
       repsPerSet={exercise.repsPerSet}
       prepTime={exercise.prepTime}
       cooldownTime={exercise.cooldownTime}
-      totalSets={exercise.totalSets}
+      totalSets={exercise.totalSets}  
+      onComplete={goNextDetail} // ✅ 이 부분!
       render={containerProps => (
         <VideoPlayerUI
           {...containerProps}
@@ -54,7 +55,7 @@ const goNextDetail = () => {
           closeStopOverlay={() => containerProps.setStopped(false)}
           togglePlay={() => containerProps.setPaused(prev => !prev)}
           handleStop={() => containerProps.setStopped(true)}
-          onComplete={goNextDetail} // ✅ 이 부분!
+        
           onSkip={() => {
             // 필요하다면 스킵도 지원
             const next = idx + 1;

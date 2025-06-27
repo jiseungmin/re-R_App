@@ -7,37 +7,37 @@ export default function VideoPlayerContainer({
   videoSource,
   repsPerSet = 1,
   totalSets = 1,
+  prepTime = 2,         // 준비동작 시간
+  stayTime = 3,         // 유지 시간 (필요 시)
+  cooldownTime = 2,     // 마무리동작 시간
   restTime = 1,
   onComplete,
   render,
 }) {
-  // 상태
+  // [운동 상태]
   const [currentRep, setCurrentRep] = useState(1);
   const [currentSet, setCurrentSet] = useState(1);
   const [paused, setPaused] = useState(false);
   const [stopped, setStopped] = useState(false);
   const [isResting, setIsResting] = useState(false);
   const [restCountdown, setRestCountdown] = useState(0);
-  const [playCount, setPlayCount] = useState(0); // 추가: 전체 플레이 횟수
+  const [playCount, setPlayCount] = useState(0);
+
+  // [진행 단계] 준비-유지-마무리
+  const phaseOrder = [
+    ...(prepTime > 0 ? [{ key: 'prep', duration: prepTime }] : []),
+    ...(stayTime > 0 ? [{ key: 'stay', duration: stayTime }] : []),
+    ...(cooldownTime > 0 ? [{ key: 'cool', duration: cooldownTime }] : []),
+  ];
+  const [currentPhaseIdx, setCurrentPhaseIdx] = useState(0);
+  const [phaseElapsed, setPhaseElapsed] = useState(0);
 
   const playCountRef = useRef(0);
   useEffect(() => { playCountRef.current = playCount }, [playCount]);
 
-  const repRef = useRef(currentRep);
-  const setRef = useRef(currentSet);
-  const pausedRef = useRef(paused);
-  const stoppedRef = useRef(stopped);
-  const isRestingRef = useRef(isResting);
-  const restCountdownRef = useRef(restCountdown);
   const isFocused = useIsFocused();
 
-  useEffect(() => { repRef.current = currentRep; }, [currentRep]);
-  useEffect(() => { setRef.current = currentSet; }, [currentSet]);
-  useEffect(() => { pausedRef.current = paused; }, [paused]);
-  useEffect(() => { stoppedRef.current = stopped; }, [stopped]);
-  useEffect(() => { isRestingRef.current = isResting; }, [isResting]);
-  useEffect(() => { restCountdownRef.current = restCountdown; }, [restCountdown]);
-
+  // 비디오 플레이어 준비
   const player = useVideoPlayer(videoSource, p => {
     p.loop = false;
     p.play();
@@ -48,82 +48,102 @@ export default function VideoPlayerContainer({
     if (!isFocused) setPaused(true);
   }, [isFocused]);
 
-  // 휴식 타이머 관리
+  // === 단계별 타이머 관리 ===
+  useEffect(() => {
+    if (paused || stopped || isResting) return;
+    setPhaseElapsed(0);
+    const thisPhase = phaseOrder[currentPhaseIdx];
+
+    if (!thisPhase) return;
+
+    const timer = setInterval(() => {
+      setPhaseElapsed(prev => {
+        if (prev + 1 >= thisPhase.duration) {
+          clearInterval(timer);
+          // 다음 단계로 이동 or 반복/세트 끝나면 반복 흐름
+          if (currentPhaseIdx + 1 < phaseOrder.length) {
+            setCurrentPhaseIdx(idx => idx + 1);
+          } else {
+            // 영상 종료 → playToEnd에서 자동진행!
+            setCurrentPhaseIdx(0); // 다음 반복시 준비부터
+          }
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentPhaseIdx, paused, stopped, isResting, phaseOrder]);
+
+  // [휴식 타이머]
   useEffect(() => {
     if (!isResting) return;
-
     setRestCountdown(restTime);
     const interval = setInterval(() => {
       setRestCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          // 휴식 종료 처리 (딜레이 줘서 play 안정화)
-          const totalRepsDone = playCountRef.current;
-          const nextSet = Math.floor(totalRepsDone / repsPerSet) + 1;
-          console.log(`[REST END] Rest complete. Move to set ${nextSet}, reset rep to 1.`);
-          setCurrentSet(nextSet);
+          setCurrentSet(currentSet + 1);
           setCurrentRep(1);
+          setCurrentPhaseIdx(0);
           setIsResting(false);
           setPaused(false);
           player.currentTime = 0;
-          setTimeout(() => {
-            player.play();
-          }, 100);
+          setTimeout(() => player.play(), 100);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [isResting, restTime, player, repsPerSet]);
+  }, [isResting, restTime, player, currentSet]);
 
-  // 영상 종료 시 반복 및 세트 증가 처리 (카운트 기반)
+  // [비디오 playToEnd 이벤트] = 반복/세트/휴식 흐름 관리
   useEffect(() => {
     if (!player) return;
-
     const targetCount = repsPerSet * totalSets;
 
     const statusSub = player.addListener('statusChange', ({ status }) => {
-      console.log(`[PLAYER STATUS] status: ${status}`);
       if (status === 'error') {
         setStopped(true);
         console.error('[PLAYER ERROR] Video loading error');
       }
     });
 
-    const playingSub = player.addListener('playingChange', ({ isPlaying }) => {
-      console.log('[PLAYER PLAYING CHANGE] isPlaying:', isPlaying);
-    });
-
     const endSub = player.addListener('playToEnd', () => {
       setPlayCount(prev => {
         const newCount = prev + 1;
-        console.log('--- playToEnd ---', newCount, '/', targetCount);
-
         if (newCount >= targetCount) {
-          console.log('=== EXERCISE COMPLETE: call onComplete() ===');
-          player.pause();
           if (onComplete) onComplete();
+          player.pause();
           return newCount;
         }
 
-        // 다음 세트/반복 표시 (원래대로 진행)
+        // 다음 세트/반복/휴식 진행
         const totalRepsDone = newCount;
         const currentSetNum = Math.floor(totalRepsDone / repsPerSet) + 1;
         const currentRepNum = (totalRepsDone % repsPerSet) + 1;
         setCurrentSet(currentSetNum > totalSets ? totalSets : currentSetNum);
         setCurrentRep(currentRepNum > repsPerSet ? repsPerSet : currentRepNum);
 
-        // 마지막 반복이 아니라면 플레이 재개
-        player.currentTime = 0;
-        player.play();
+        // 마지막 반복이 아니라면 초기화
+        setCurrentPhaseIdx(0);
 
-        // 세트 마지막 반복이면 휴식 타임
-        if (currentRepNum === repsPerSet && currentSetNum <= totalSets && currentSetNum !== 1 && newCount < targetCount) {
+        // 세트 마지막 반복이면 휴식
+        if (
+          currentRepNum === repsPerSet &&
+          currentSetNum <= totalSets &&
+          currentSetNum !== 1 &&
+          newCount < targetCount
+        ) {
           setIsResting(true);
           setPaused(true);
           player.pause();
+        } else {
+          // 바로 다음 반복
+          player.currentTime = 0;
+          player.play();
         }
         return newCount;
       });
@@ -131,26 +151,18 @@ export default function VideoPlayerContainer({
 
     return () => {
       statusSub.remove();
-      playingSub.remove();
       endSub.remove();
-      console.log('[CLEANUP] Removed player event listeners');
     };
   }, [player, repsPerSet, totalSets, restTime, onComplete, videoSource]);
 
-  // 재생/일시정지 상태 제어
+  // [일시정지/정지 컨트롤]
   useEffect(() => {
     if (!player) return;
-
-    if (paused || stopped) {
-      player.pause();
-      console.log(`[PLAYER CONTROL] Player paused (paused:${paused}, stopped:${stopped})`);
-    } else {
-      player.play();
-      console.log(`[PLAYER CONTROL] Player playing`);
-    }
+    if (paused || stopped) player.pause();
+    else player.play();
   }, [paused, stopped, player]);
 
-  // 비디오 소스 변경 시 초기 상태 리셋
+  // [비디오 소스 변경 시 상태 초기화]
   useEffect(() => {
     setCurrentRep(1);
     setCurrentSet(1);
@@ -158,12 +170,12 @@ export default function VideoPlayerContainer({
     setStopped(false);
     setIsResting(false);
     setRestCountdown(0);
-    setPlayCount(0); // 카운트도 초기화
-    console.log('[STATE RESET] Video source changed - Resetting state');
-    console.log('[NEW VIDEO SOURCE]', videoSource);
+    setPlayCount(0);
+    setCurrentPhaseIdx(0);
+    setPhaseElapsed(0);
   }, [videoSource]);
 
-  // 항상 렌더 호출, 휴식 시 paused 상태로 영상 멈춤, 휴식 UI 오버레이 표시
+  // [렌더 프롭스로 단계 정보 전달]
   return (
     <View style={{ flex: 1 }}>
       {render({
@@ -180,6 +192,10 @@ export default function VideoPlayerContainer({
         setCurrentRep,
         setCurrentSet,
         isResting,
+        // === 추가된 props ===
+        currentPhase: phaseOrder[currentPhaseIdx]?.key || 'prep',
+        phaseElapsed,
+        phaseDuration: phaseOrder[currentPhaseIdx]?.duration || 0,
       })}
 
       {isResting && (
