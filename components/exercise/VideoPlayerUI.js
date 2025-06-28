@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ExercisePauseOverlay from './ExercisePauseOverlay';
 import ExerciseStopOverlay from './ExerciseStopOverlay';
 import { VideoView } from 'expo-video';
+import StepProgressBar from './StepProgressBar';
 
 const { width } = Dimensions.get('window');
 const OVERLAY_HEIGHT = 100;
@@ -28,7 +29,6 @@ export default function VideoPlayerUI({
   setStopped,
   onSkip,
   insets,
-  exercise,
   pauseOverlayData,
   handleResume,
   handleHome,
@@ -40,14 +40,8 @@ export default function VideoPlayerUI({
   currentPhase,
   phaseElapsed,
   phaseDuration,
+  phases, // 동적으로 내려줌
 }) {
-  const segments = [
-    { key: 'prep', label: '준비동작', show: true, bg: require('../../assets/images/사각형 2393.png') },
-    { key: 'stay', label: '유지', show: exercise.stayTime > 0, bg: require('../../assets/images/사각형 2393.png') },
-    { key: 'cool', label: '마무리동작', show: true, bg: require('../../assets/images/사각형 2393.png') },
-  ];
-  const visibleSegments = segments.filter(s => s.show);
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Video View */}
@@ -82,50 +76,13 @@ export default function VideoPlayerUI({
           </View>
         </TouchableOpacity>
 
-{/* 중앙: 단계 게이지 + set/rep */}
-<View style={styles.centerOverlay}>
-  <View style={styles.segmentRow}>
-    {visibleSegments.map((seg, idx) => {
-      const isCurrent = seg.key === currentPhase;
-      const progress = isCurrent && phaseDuration > 0
-        ? Math.min(1, Math.max(0, phaseElapsed / phaseDuration))
-        : 0;
-      return (
-        <View
-          key={seg.key}
-          style={[
-            styles.segmentImg,
-            { backgroundColor: '#1568c7', overflow: 'hidden', position: 'relative' },
-            idx === 0 && styles.leftRadius,
-            idx === visibleSegments.length - 1 && styles.rightRadius,
-          ]}
-        >
-          {/* 게이지 */}
-          {isCurrent && (
-            <View
-              style={{
-                position: 'absolute',
-                left: 0, top: 0, bottom: 0,
-                width: progress * 110, // segmentImg width와 동일
-                backgroundColor: 'rgba(0,200,64,0.8)',
-                borderTopLeftRadius: idx === 0 ? 20 : 0,
-                borderBottomLeftRadius: idx === 0 ? 20 : 0,
-                borderTopRightRadius: idx === visibleSegments.length - 1 ? 20 : 0,
-                borderBottomRightRadius: idx === visibleSegments.length - 1 ? 20 : 0,
-                zIndex: 1,
-              }}
-              pointerEvents="none"
-            />
-          )}
-          {/* 단계명 */}
-          <Text style={[styles.segmentText, { position: 'relative', zIndex: 2 }]}>
-            {seg.label}
-          </Text>
-        </View>
-      );
-    })}
-  </View>
-          {/* 기존 set/rep 정보 절대 건들지 않음 */}
+        {/* 중앙: 단계 게이지 + set/rep */}
+        <View style={styles.centerOverlay}>
+          <StepProgressBar
+            phases={phases}
+            currentPhase={currentPhase}
+            phaseElapsed={phaseElapsed}
+          />
           <Text style={styles.setInfoText}>{`Set ${currentSet}/${totalSets}`}</Text>
           <Text style={styles.repInfoText}>{`${currentRep}/${repsPerSet}회`}</Text>
         </View>
@@ -193,6 +150,7 @@ export default function VideoPlayerUI({
   );
 }
 
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   topOverlay: {
@@ -232,20 +190,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
   },
-  segmentRow: {
-    flexDirection: 'row',
-    overflow: 'hidden',
-    marginBottom: 2,
-  },
-  segmentImg: {
-    width: 110,
-    height: 38,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 1,
-  },
-  segmentText: { fontSize: 12, color: '#fff', fontWeight: '600' },
-
   setInfoText: {
     color: '#222',
     fontWeight: 'bold',

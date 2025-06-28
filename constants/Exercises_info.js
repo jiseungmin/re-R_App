@@ -9,7 +9,7 @@ export const EXERCISES = [
       '천천히 5cm 가량 내려가 주세요',
       '해당 자세로 5초 유지합니다'
     ],
-    totalSets: 3,
+    totalSets: 2,
     repsPerSet: 2,
     prepTime: 5,        // 준비 동작 시간 (초)
     stayTime:5 ,         // 유지시간(초)
@@ -26,7 +26,7 @@ export const EXERCISES = [
       '천천히 5cm 가량 내려가 주세요',
       '해당 자세로 5초 유지합니다'
     ],
-    totalSets: 1,
+    totalSets: 2,
     repsPerSet: 1,
     prepTime: 5,        // 준비 동작 시간 (초)
     stayTime:5 ,         // 유지시간(초)

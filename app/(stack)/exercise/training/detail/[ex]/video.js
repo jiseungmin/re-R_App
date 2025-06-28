@@ -1,9 +1,9 @@
-import React from 'react';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { EXERCISES } from '../../../../../../constants/Exercises_info';
 import VideoPlayerContainer from '../../../../../../components/exercise/VideoPlayerContainer';
 import VideoPlayerUI from '../../../../../../components/exercise/VideoPlayerUI';
+import { EXERCISES } from '../../../../../../constants/Exercises_info';
 
 export default function VideoScreen() {
   const params = useLocalSearchParams();
@@ -40,6 +40,7 @@ const goNextDetail = () => {
       repsPerSet={exercise.repsPerSet}
       prepTime={exercise.prepTime}
       cooldownTime={exercise.cooldownTime}
+      stayTime={exercise.stayTime}
       totalSets={exercise.totalSets}  
       onComplete={goNextDetail} // ✅ 이 부분!
       render={containerProps => (
