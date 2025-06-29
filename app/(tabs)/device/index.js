@@ -1,23 +1,23 @@
+import { Buffer } from 'buffer';
 import { Stack } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  SafeAreaView,
-  View,
-  Text,
-  Dimensions,
-  StyleSheet,
-  ImageBackground,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Animated,
-  Platform,
-  PermissionsAndroid,
-  Alert,
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    ImageBackground,
+    PermissionsAndroid,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Buffer } from 'buffer';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SERVICE_UUID = null; // All service scan
@@ -29,7 +29,10 @@ export default function Device() {
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
-  const [notifyValue, setNotifyValue] = useState('');
+  const [rawData, setRawData] = useState("");
+  const [flexion, setFlexion] = useState(null);
+  const [extension, setExtension] = useState(null);
+  const [mode, setMode] = useState(null);
   const [writeChar, setWriteChar] = useState(null);
 
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -65,7 +68,10 @@ export default function Device() {
   const startScan = async () => {
     setDevices([]);
     setConnectedDevice(null);
-    setNotifyValue('');
+    setRawData("");
+    setFlexion(null);
+    setExtension(null);
+    setMode(null);
     setWriteChar(null);
     setScanning(true);
     runStutterSpin();
@@ -104,7 +110,9 @@ export default function Device() {
 
       // 특성 찾기
       const services = await connected.services();
-      let write = null;
+      let notifyFound = false;
+      let writeFound = null;
+
       for (const svc of services) {
         const chars = await svc.characteristics();
         for (const c of chars) {
@@ -112,26 +120,38 @@ export default function Device() {
             // Notify 구독
             c.monitor((err, char) => {
               if (err) {
-                setNotifyValue("Notify 오류");
+                setRawData("Notify 오류");
                 return;
               }
               if (char?.value) {
-                // 디바이스->모바일: 4byte,  문자열 or hex 표시
                 let buf = Buffer.from(char.value, 'base64');
-                let str = buf.toString('utf8');
-                setNotifyValue(str);
+                setRawData(buf.toString('hex'));
+                if (buf.length >= 10) {
+                  const modeVal = buf[5];
+                  const flexVal = buf[6];
+                  const extVal = buf[7];
+                  setMode(modeVal);
+                  setFlexion(flexVal);
+                  setExtension(extVal);
+                } else {
+                  setMode(null);
+                  setFlexion(null);
+                  setExtension(null);
+                }
               }
             });
+            notifyFound = true;
           }
           if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) {
-            write = c;
+            writeFound = c;
           }
         }
       }
-      if (write) setWriteChar(write);
-      else setWriteChar(null);
+      setWriteChar(writeFound);
+      if (!notifyFound) Alert.alert("Notify UUID 미발견", "Notify 캐릭터리스틱이 없습니다.");
     } catch (e) {
       Alert.alert('연결 실패', e?.message || "BLE 연결 오류");
+      setConnectedDevice(null);
     }
     setConnectingId(null);
   };
@@ -140,8 +160,7 @@ export default function Device() {
   const sendStart = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      // 프로토콜: 0xaa,0x64,0x01,0x02,0xd1
-      const arr = [0xaa,0x64,0x01,0x02,0xd1];
+      const arr = [0xaa, 0x64, 0x01, 0x02, 0xd1];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
       Alert.alert('전송 완료', 'START 프로토콜 전송!');
@@ -153,8 +172,7 @@ export default function Device() {
   const sendStop = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
-      // 프로토콜: 0xaa,0x64,0x00,0x02,0xd4 (변경후)
-      const arr = [0xaa,0x64,0x00,0x02,0xd4];
+      const arr = [0xaa, 0x64, 0x00, 0x02, 0xd4];
       const data = Buffer.from(arr).toString('base64');
       await writeChar.writeWithResponse(data);
       Alert.alert('전송 완료', 'STOP 프로토콜 전송!');
@@ -257,7 +275,14 @@ export default function Device() {
         <View style={[styles.dataContainer, { marginBottom: insets.bottom + 16 }]}>
           <Text style={styles.dataTitle}>연결됨: {connectedDevice.name || '(No Name)'}</Text>
           <Text style={styles.dataText}>ID: {connectedDevice.id}</Text>
-          <Text style={styles.dataText}>Notify 값: {notifyValue}</Text>
+          <Text style={styles.dataText}>패킷(raw): {rawData}</Text>
+          {mode !== null && (
+            <View style={{marginTop: 6}}>
+              <Text style={styles.dataText}>모드: {mode} ({'0x'+mode.toString(16)})</Text>
+              <Text style={styles.dataText}>Flexion(구부림): {flexion} 도</Text>
+              <Text style={styles.dataText}>Extension(펴짐): {extension} 도</Text>
+            </View>
+          )}
           <View style={{flexDirection:'row', marginTop:8}}>
             <TouchableOpacity
               onPress={sendStart}

@@ -1,13 +1,14 @@
 // components/bluetooth/BleScanner.js
 import { useEffect, useRef } from 'react';
-import { Platform, PermissionsAndroid, Alert } from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
-  const managerRef = useRef(new BleManager());
+  const managerRef = useRef(null);
 
   useEffect(() => {
-    const manager = managerRef.current;
+    const manager = new BleManager();
+    managerRef.current = manager;
     const found = new Map();
 
     const requestPermissions = async () => {
@@ -24,27 +25,36 @@ export default function BleScanner({ onDevicesFound, scanTimeout = 8000 }) {
       try {
         await requestPermissions();
         found.clear();
-        manager.startDeviceScan(null, null, (err, device) => {
-          if (err) {
-            Alert.alert("스캔 오류", err.message || String(err));
+        
+        manager.startDeviceScan(null, null, (error, device) => {
+          if (error) {
+            console.error("BLE 스캔 오류:", error.message);
             return;
           }
-          if (device && !found.has(device.id)) {
-            found.set(device.id, device);
-            // onDevicesFound에 객체 배열로 전달
-            onDevicesFound(Array.from(found.values()));
+          if (device && device.id) {
+            if (!found.has(device.id)) {
+              found.set(device.id, device);
+              // onDevicesFound에 객체 배열로 전달
+              onDevicesFound(Array.from(found.values()));
+            }
           }
         });
-        setTimeout(() => manager.stopDeviceScan(), scanTimeout);
+        
+        setTimeout(() => {
+          manager.stopDeviceScan();
+        }, scanTimeout);
       } catch (e) {
-        Alert.alert("BLE 오류", e.message || String(e));
+        console.error("BLE 스캔 시작 오류:", e.message);
       }
     };
 
     startScan();
+    
     return () => {
-      manager.stopDeviceScan();
-      manager.destroy();
+      if (managerRef.current) {
+        managerRef.current.stopDeviceScan();
+        managerRef.current.destroy();
+      }
     };
   }, [onDevicesFound, scanTimeout]);
 
