@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Animated, Dimensions, FlatList, Image, ImageBackground, Modal,
-  PermissionsAndroid, Platform,
-  SafeAreaView, StyleSheet, Text, TouchableOpacity, View
+    Alert,
+    Animated, Dimensions, FlatList, Image, ImageBackground, Modal,
+    PermissionsAndroid, Platform,
+    SafeAreaView, StyleSheet, Text, TouchableOpacity, View
 } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
@@ -11,16 +11,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
-// 전역 BleManager (비권장)
-const globalManager = new BleManager();
-
-export default function Device() {
+export default function BLETest2() {
   const [devices, setDevices] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
   const [connected, setConnected] = useState(null);
   const [showControl, setShowControl] = useState(false);
 
+  const managerRef = useRef(null);
   const spinValue = useRef(new Animated.Value(0)).current;
 
   // 권한 요청
@@ -38,8 +36,9 @@ export default function Device() {
   const scan = async () => {
     setDevices([]);
     setScanning(true);
+    if (!managerRef.current) managerRef.current = new BleManager();
     await requestPermissions();
-    globalManager.startDeviceScan(null, null, (error, device) => {
+    managerRef.current.startDeviceScan(null, null, (error, device) => {
       if (error) {
         setScanning(false);
         Alert.alert('스캔 오류', error.message);
@@ -53,7 +52,7 @@ export default function Device() {
       }
     });
     setTimeout(() => {
-      globalManager?.stopDeviceScan();
+      managerRef.current?.stopDeviceScan();
       setScanning(false);
     }, 8000);
   };
@@ -62,7 +61,8 @@ export default function Device() {
   const connect = async (device) => {
     setConnectingId(device.id);
     try {
-      const connectedDevice = await globalManager.connectToDevice(device.id, { autoConnect: true });
+      if (!managerRef.current) managerRef.current = new BleManager();
+      const connectedDevice = await managerRef.current.connectToDevice(device.id, { autoConnect: true });
       await connectedDevice.discoverAllServicesAndCharacteristics();
       setConnected(connectedDevice);
       setShowControl(true);
@@ -86,7 +86,13 @@ export default function Device() {
     }
   };
 
-  // 전역 BleManager는 destroy하지 않음(앱 전체 공유)
+  // BLE 매니저 초기화/정리
+  useEffect(() => {
+    managerRef.current = new BleManager();
+    return () => {
+      managerRef.current?.destroy();
+    };
+  }, []);
 
   // 화면 진입시 자동 스캔
   useEffect(() => {
@@ -112,7 +118,7 @@ export default function Device() {
     <SafeAreaView style={styles.container}>
       <ImageBackground source={require('../../../assets/images/그룹 5312.png')} style={styles.header} imageStyle={styles.headerBg}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>BLE 연결(Device-전역)</Text>
+          <Text style={styles.headerTitle}>BLE 연결 테스트2</Text>
           <TouchableOpacity style={styles.refreshButton} onPress={scan}>
             <Animated.Image source={require('../../../assets/images/그룹 3870.png')} style={[styles.refreshIcon, { transform: [{ rotate: spin }] }]} />
             <Text style={styles.refreshText}>다시 검색</Text>
@@ -188,4 +194,4 @@ const styles = StyleSheet.create({
   deviceInfo: { flex: 1 },
   deviceName: { fontSize: 14, fontWeight: '500', color: '#333' },
   deviceAddress: { fontSize: 10, color: '#666', marginTop: 2 },
-});
+}); 
