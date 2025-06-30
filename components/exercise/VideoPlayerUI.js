@@ -1,21 +1,23 @@
+import { VideoView } from 'expo-video';
 import React from 'react';
 import {
-  View,
-  TouchableOpacity,
-  Text,
-  ImageBackground,
-  Image,
-  StyleSheet,
   Dimensions,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ExercisePauseOverlay from './ExercisePauseOverlay';
 import ExerciseStopOverlay from './ExerciseStopOverlay';
-import { VideoView } from 'expo-video';
 import StepProgressBar from './StepProgressBar';
 
-const { width } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 const OVERLAY_HEIGHT = 100;
+const BAR_MARGIN = 8;
+const barWidth = screenWidth - BAR_MARGIN * 2;
 
 export default function VideoPlayerUI({
   player,
@@ -77,11 +79,12 @@ export default function VideoPlayerUI({
         </TouchableOpacity>
 
         {/* 중앙: 단계 게이지 + set/rep */}
-        <View style={styles.centerOverlay}>
+        <View style={[styles.centerOverlay]}>
           <StepProgressBar
             phases={phases}
             currentPhase={currentPhase}
             phaseElapsed={phaseElapsed}
+            barWidth={barWidth}
           />
           <Text style={styles.setInfoText}>{`Set ${currentSet}/${totalSets}`}</Text>
           <Text style={styles.repInfoText}>{`${currentRep}/${repsPerSet}회`}</Text>
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
   iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   pauseIcon: { width: 40, height: 40 },
   stopWrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
-  stopBtn: { width: width - 32, height: 48, justifyContent: 'center', alignItems: 'center' },
+  stopBtn: { width: screenWidth - 32, height: 48, justifyContent: 'center', alignItems: 'center' },
   btnRadius: { borderRadius: 24 },
   stopText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
