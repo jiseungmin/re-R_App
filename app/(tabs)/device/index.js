@@ -1,44 +1,44 @@
 import { Stack } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  Image,
-  ImageBackground,
-  Modal,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    ImageBackground,
+    Modal,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BleScanner from '../../../components/bluetooth/BleScanner';
 import useBleConnection from '../../../hooks/useBleConnection';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function Device() {
-  const [devices, setDevices] = useState([]);
-  const [scanning, setScanning] = useState(false);
-  
   const spinValue = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
   
   // BLE 연결 훅 사용
   const {
-    connected,
+    devices,
+    scanning,
     connectingId,
     rawData,
     flexion,
     extension,
     mode,
+    connected,
     showControl,
     setShowControl,
+    scan,
     connect,
     sendStart,
-    sendStop
+    sendStop,
+    disconnect
   } = useBleConnection();
 
   // 스핀 애니메이션
@@ -54,32 +54,26 @@ export default function Device() {
   };
   const spin = spinValue.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'] });
 
-  // 스캔 상태 변경 핸들러
-  const handleScanningChange = (isScanning) => {
-    setScanning(isScanning);
-    if (isScanning) {
+  // 스캔 상태 변경 시 애니메이션 실행
+  useEffect(() => {
+    if (scanning) {
       runStutterSpin();
     }
-  };
+  }, [scanning]);
+
+  // 화면 진입시 자동 스캔
+  useEffect(() => {
+    scan();
+  }, []);
 
   // 새로고침 버튼
   const onRefresh = () => {
-    setDevices([]);
-    // BleScanner가 자동으로 스캔을 시작하도록 트리거
-    handleScanningChange(true);
+    scan();
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      
-      {/* BLE 스캐너 컴포넌트 */}
-      <BleScanner
-        onDevicesFound={setDevices}
-        onScanningChange={handleScanningChange}
-        scanTimeout={8000}
-        autoStart={true}
-      />
       
       {/* 헤더 */}
       <ImageBackground
@@ -198,39 +192,45 @@ export default function Device() {
               onPress={sendStart}
               style={{
                 backgroundColor: '#22c55e',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
                 borderRadius: 8,
-                padding: 12,
                 marginBottom: 8,
-                minWidth: 200,
+                minWidth: 120,
                 alignItems: 'center'
               }}
             >
-              <Text style={{color: '#fff', fontWeight: 'bold'}}>START 명령 전송</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>START</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={sendStop}
               style={{
-                backgroundColor: '#e11d48',
+                backgroundColor: '#ef4444',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
                 borderRadius: 8,
-                padding: 12,
-                marginBottom: 16,
-                minWidth: 200,
+                marginBottom: 8,
+                minWidth: 120,
                 alignItems: 'center'
               }}
             >
-              <Text style={{color: '#fff', fontWeight: 'bold'}}>STOP 명령 전송</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>STOP</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setShowControl(false)}
+              onPress={() => {
+                disconnect();
+                setShowControl(false);
+              }}
               style={{
-                backgroundColor: '#aaa',
+                backgroundColor: '#6b7280',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
                 borderRadius: 8,
-                padding: 12,
-                minWidth: 200,
+                minWidth: 120,
                 alignItems: 'center'
               }}
             >
-              <Text style={{color: '#fff', fontWeight: 'bold'}}>닫기</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>연결 해제</Text>
             </TouchableOpacity>
           </View>
         </View>

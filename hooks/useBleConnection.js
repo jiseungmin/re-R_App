@@ -1,23 +1,66 @@
 import { Buffer } from 'buffer';
-import { useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
 export default function useBleConnection() {
-  const [connected, setConnected] = useState(null);
+  const [devices, setDevices] = useState([]);
+  const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
   const [rawData, setRawData] = useState("");
   const [flexion, setFlexion] = useState(null);
   const [extension, setExtension] = useState(null);
   const [mode, setMode] = useState(null);
-  const [writeChar, setWriteChar] = useState(null);
+  const [connected, setConnected] = useState(null);
   const [showControl, setShowControl] = useState(false);
+  const [writeChar, setWriteChar] = useState(null);
 
   const managerRef = useRef(null);
 
+  // 권한 요청
+  const requestPermissions = async () => {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ]);
+    }
+  };
+
+  // BLE 스캔
+  const scan = async () => {
+    setDevices([]);
+    setScanning(true);
+    if (!managerRef.current) managerRef.current = new BleManager();
+    await requestPermissions();
+
+    managerRef.current.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        setScanning(false);
+        console.error('스캔 오류:', error.message);
+        return;
+      }
+      if (device && device.id) {
+        setDevices(prev => {
+          if (prev.find(d => d.id === device.id)) return prev;
+          return [...prev, device];
+        });
+      }
+    });
+
+    setTimeout(() => {
+      if (managerRef.current) {
+        managerRef.current.stopDeviceScan();
+      }
+      setScanning(false);
+    }, 8000);
+  };
+
+  // 연결 + Notify 구독 + WriteChar 찾기
   const connect = async (device) => {
     setConnectingId(device.id);
     try {
@@ -75,6 +118,7 @@ export default function useBleConnection() {
     setConnectingId(null);
   };
 
+  // START 명령
   const sendStart = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
@@ -87,6 +131,7 @@ export default function useBleConnection() {
     }
   };
 
+  // STOP 명령
   const sendStop = async () => {
     try {
       if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
@@ -99,7 +144,11 @@ export default function useBleConnection() {
     }
   };
 
+  // 연결 해제
   const disconnect = () => {
+    if (connected) {
+      connected.cancelConnection();
+    }
     setConnected(null);
     setConnectingId(null);
     setRawData("");
@@ -110,16 +159,28 @@ export default function useBleConnection() {
     setShowControl(false);
   };
 
+  // BLE 매니저 초기화/정리
+  useEffect(() => {
+    managerRef.current = new BleManager();
+    return () => {
+      if (managerRef.current) {
+        managerRef.current.destroy();
+      }
+    };
+  }, []);
+
   return {
-    connected,
+    devices,
+    scanning,
     connectingId,
     rawData,
     flexion,
     extension,
     mode,
-    writeChar,
+    connected,
     showControl,
     setShowControl,
+    scan,
     connect,
     sendStart,
     sendStop,
