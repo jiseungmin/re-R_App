@@ -41,7 +41,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="device/index"
+        name="device"
         options={{
           tabBarLabel: '기기정보',
           tabBarIcon: ({ focused, size }) => (

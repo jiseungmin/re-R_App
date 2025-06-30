@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { BLEProvider } from '../contexts/BLEContext';
+
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -18,7 +18,6 @@ export default function RootLayout() {
   }
 
   return (
-    <BLEProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           {/* 메인 탭 */}
@@ -28,6 +27,5 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
-    </BLEProvider>
   );
 }

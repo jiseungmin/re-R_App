@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { SafeAreaView, View, Text, ImageBackground, Image, Animated, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import React, { useRef, useState } from 'react';
+import { Animated, Dimensions, Image, ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomPanel from '../../../components/BottomPanel'; // 상대 경로 주의!
 import { exercisePlans } from '../../../data/exercisePlans';
 import { prescription } from '../../../data/prescription';
@@ -12,8 +12,9 @@ export default function Exercise() {
   const router = useRouter();
   const [bottomPanelType, setBottomPanelType] = useState('slide');
   //'slide', 'measure', 'consult'
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const [panelOpen, setPanelOpen] = useState(false); // 기본값을 false로!
 
   // (슬라이드 패널) 패널 토글
   const togglePanel = () => {
