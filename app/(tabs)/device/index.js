@@ -1,20 +1,24 @@
+import { Buffer } from 'buffer';
 import { Stack } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   FlatList,
   Image,
   ImageBackground,
   Modal,
+  PermissionsAndroid,
+  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { BleManager } from 'react-native-ble-plx';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBLE } from '../../../contexts/BLEContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -22,27 +26,155 @@ const CHAR_UUID_NOTIFY = "0000FFF1-0000-1000-8000-00805F9B34FB";
 const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 
 export default function Device() {
+  // BLE 관련 상태 (정상동작 코드와 동일)
+  const [devices, setDevices] = useState([]);
+  const [scanning, setScanning] = useState(false);
+  const [connectingId, setConnectingId] = useState(null);
+  const [rawData, setRawData] = useState("");
+  const [flexion, setFlexion] = useState(null);
+  const [extension, setExtension] = useState(null);
+  const [mode, setMode] = useState(null);
+  const [connected, setConnected] = useState(null);
+  const [showControl, setShowControl] = useState(false);
+  const [writeChar, setWriteChar] = useState(null);
+
+  const managerRef = useRef(null);
   const spinValue = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
-  
-  // BLE Context 사용
-  const {
-    devices,
-    scanning,
-    connectingId,
-    rawData,
-    flexion,
-    extension,
-    mode,
-    connected,
-    showControl,
-    setShowControl,
-    scan,
-    connect,
-    disconnect,
-    sendStart,
-    sendStop,
-  } = useBLE();
+
+  // 권한 요청
+  const requestPermissions = async () => {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ]);
+    }
+  };
+
+  // BLE 스캔
+  const scan = async () => {
+    setDevices([]);
+    setScanning(true);
+    if (!managerRef.current) managerRef.current = new BleManager();
+    await requestPermissions();
+
+    managerRef.current.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        setScanning(false);
+        Alert.alert('스캔 오류', error.message);
+        return;
+      }
+      if (device && device.id) {
+        setDevices(prev => {
+          if (prev.find(d => d.id === device.id)) return prev;
+          return [...prev, device];
+        });
+      }
+    });
+
+    setTimeout(() => {
+      managerRef.current?.stopDeviceScan();
+      setScanning(false);
+    }, 8000);
+  };
+
+  // 연결 + Notify 구독 + WriteChar 찾기
+  const connect = async (device) => {
+    setConnectingId(device.id);
+    try {
+      if (!managerRef.current) managerRef.current = new BleManager();
+      const connectedDevice = await managerRef.current.connectToDevice(device.id, { autoConnect: true });
+      await connectedDevice.discoverAllServicesAndCharacteristics();
+
+      // 모든 서비스 → 캐릭터리스틱
+      const services = await connectedDevice.services();
+      let notifyFound = false;
+      let writeFound = null;
+
+      for (const svc of services) {
+        const chars = await svc.characteristics();
+        for (const c of chars) {
+          if (c.uuid.toUpperCase() === CHAR_UUID_NOTIFY) {
+            // Notify 구독
+            c.monitor((err, char) => {
+              if (err) {
+                setRawData("Notify 오류");
+                return;
+              }
+              if (char?.value) {
+                let buf = Buffer.from(char.value, 'base64');
+                setRawData(buf.toString('hex'));
+                if (buf.length >= 10) {
+                  const modeVal = buf[5];
+                  const flexVal = buf[6];
+                  const extVal = buf[7];
+                  setMode(modeVal);
+                  setFlexion(flexVal);
+                  setExtension(extVal);
+                } else {
+                  setMode(null);
+                  setFlexion(null);
+                  setExtension(null);
+                }
+              }
+            });
+            notifyFound = true;
+          }
+          if (c.uuid.toUpperCase() === CHAR_UUID_WRITE) {
+            writeFound = c;
+          }
+        }
+      }
+      setWriteChar(writeFound);
+      setConnected(connectedDevice);
+      setShowControl(true);
+      if (!notifyFound) Alert.alert("Notify UUID 미발견", "Notify 캐릭터리스틱이 없습니다.");
+    } catch (e) {
+      Alert.alert('연결 실패', e?.message || '알 수 없는 오류');
+      setConnected(null);
+    }
+    setConnectingId(null);
+  };
+
+  // START 명령
+  const sendStart = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      const arr = [0xaa, 0x64, 0x01, 0x02, 0xd1];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('START', 'START 명령 전송 완료');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Start 전송 오류');
+    }
+  };
+  // STOP 명령
+  const sendStop = async () => {
+    try {
+      if (!writeChar) throw new Error("쓰기 특성을 찾을 수 없습니다.");
+      const arr = [0xaa, 0x64, 0x00, 0x02, 0xd4];
+      const data = Buffer.from(arr).toString('base64');
+      await writeChar.writeWithResponse(data);
+      Alert.alert('STOP', 'STOP 명령 전송 완료');
+    } catch (e) {
+      Alert.alert('전송 실패', e?.message || 'Stop 전송 오류');
+    }
+  };
+
+  // BLE 매니저 초기화/정리
+  useEffect(() => {
+    managerRef.current = new BleManager();
+    return () => {
+      managerRef.current?.destroy();
+    };
+  }, []);
+
+  // 화면 진입시 자동 스캔
+  useEffect(() => {
+    scan();
+  }, []);
 
   // 스핀 애니메이션
   const runStutterSpin = () => {
@@ -63,11 +195,6 @@ export default function Device() {
       runStutterSpin();
     }
   }, [scanning]);
-
-  // 화면 진입시 자동 스캔
-  useEffect(() => {
-    scan();
-  }, []);
 
   // 새로고침 버튼
   const onRefresh = () => {
@@ -221,7 +348,7 @@ export default function Device() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                disconnect();
+                setConnected(null);
                 setShowControl(false);
               }}
               style={{
