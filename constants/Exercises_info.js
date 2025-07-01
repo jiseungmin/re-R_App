@@ -128,12 +128,12 @@ export const EXERCISES= [
       '숨을 내쉬며 팔을 앞으로 내밉니다. 팔꿈치는 곧게 유지하세요.',
       '팔을 천천히 내립니다.',
     ],
-    totalSets: 1,
-    repsPerSet: 1,
-    prepTime: 1,
-    stayTime: 1,        // 연결동작
-    cooldownTime: 1,
-    restBetweenSets: 1,
+    totalSets: 2,
+    repsPerSet: 20,
+    prepTime: 3,
+    stayTime: 3,        // 연결동작
+    cooldownTime: 3,
+    restBetweenSets: 30,
     video: require('../assets/video/CPM app guide/Q.mp4'),
   },
 ];

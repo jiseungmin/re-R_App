@@ -21,7 +21,8 @@ export default function VideoScreen() {
   const goNextDetail = () => {
     const next = idx + 1;
     if (next >= EXERCISES.length) {
-      setShowComplete(true);
+      // 운동 다 끝나면 평가 페이지로 이동
+      router.replace('/menu/checkMyHealth/PostExercise/postpain');
     } else {
       router.push({
         pathname: `/exercise/training/detail/${EXERCISES[next].id}`,
@@ -44,7 +45,19 @@ export default function VideoScreen() {
             const next = idx + 1;
             const nextSkipped = [...skipped, idx];
             if (next >= EXERCISES.length) {
-              router.replace('/exercise/training/program');
+              // 마지막 운동인 경우
+              Alert.alert(
+                '운동 완료',
+                '마지막 운동이 끝났습니다.',
+                [
+                  {
+                    text: '확인',
+                    onPress: () => {
+                      router.replace('/menu/checkMyHealth/PostExercise/postpain');
+                    }
+                  }
+                ]
+              );
             } else {
               router.push({
                 pathname: `/exercise/training/detail/${EXERCISES[next].id}`,
@@ -96,7 +109,10 @@ export default function VideoScreen() {
           insets={insets}
           pauseOverlayData={pauseOverlayData}
           handleResume={() => setPaused(false)}
-          handleHome={() => navigation.navigate('(tabs)', { screen: 'exercise' })}
+          handleHome={() => {
+            setSkipUnmount(true);
+            setTimeout(() => navigation.navigate('(tabs)', { screen: 'exercise' }), 0);
+          }}
           handleCallClinic={() => {}}
           handleCall119={() => {}}
           closeStopOverlay={() => setStopped(false)}
@@ -106,7 +122,7 @@ export default function VideoScreen() {
           phaseElapsed={300 - seconds}
           phaseDuration={300}
           phases={[{ key: 'prep', label: '준비', duration: 300 }]}
-          skipDisabled={idx === EXERCISES.length - 1}
+          skipDisabled={false}
         >
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ fontSize: 48, color: '#fff', fontWeight: 'bold', textShadowColor: '#000', textShadowOffset: {width: 2, height: 2}, textShadowRadius: 4 }}>{min}:{sec.toString().padStart(2, '0')}</Text>
@@ -118,7 +134,7 @@ export default function VideoScreen() {
             <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', width: 280 }}>
               <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 16 }}>모든 프로그램을 전부 완료하셨습니다</Text>
               <Text style={{ fontSize: 16, color: '#444', marginBottom: 24 }}>메인화면으로 돌아갑니다.</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('(tabs)', { screen: 'exercise' })} style={{ backgroundColor: '#4f6dff', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 }}>
+              <TouchableOpacity onPress={() => router.replace('/menu/checkMyHealth/PostExercise/postpain')} style={{ backgroundColor: '#4f6dff', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 }}>
                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>확인</Text>
               </TouchableOpacity>
             </View>
@@ -143,6 +159,7 @@ export default function VideoScreen() {
         cooldownTime={exercise.cooldownTime}
         stayTime={exercise.stayTime}
         totalSets={exercise.totalSets}  
+        restBetweenSets={exercise.restBetweenSets}
         onComplete={goNextDetail}
         render={containerProps => (
           <VideoPlayerUI
@@ -151,14 +168,17 @@ export default function VideoScreen() {
             exercise={exercise}
             pauseOverlayData={pauseOverlayData}
             handleResume={() => containerProps.setPaused(false)}
-            handleHome={() => navigation.navigate('(tabs)', { screen: 'exercise' })}
+            handleHome={() => {
+              setSkipUnmount(true);
+              setTimeout(() => navigation.navigate('(tabs)', { screen: 'exercise' }), 0);
+            }}
             handleCallClinic={() => console.log('외래 병원에 전화 연결')}
             handleCall119={() => console.log('119에 전화 연결')}
             closeStopOverlay={() => containerProps.setStopped(false)}
             togglePlay={() => containerProps.setPaused(prev => !prev)}
             handleStop={() => containerProps.setStopped(true)}
             onSkip={handleSkip}
-            skipDisabled={idx === EXERCISES.length - 1}
+            skipDisabled={false}
           />
         )}
       />
@@ -167,7 +187,7 @@ export default function VideoScreen() {
           <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', width: 280 }}>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 16 }}>모든 프로그램을 전부 완료하셨습니다</Text>
             <Text style={{ fontSize: 16, color: '#444', marginBottom: 24 }}>메인화면으로 돌아갑니다.</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('(tabs)', { screen: 'exercise' })} style={{ backgroundColor: '#4f6dff', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 }}>
+            <TouchableOpacity onPress={() => router.replace('/menu/checkMyHealth/PostExercise/postpain')} style={{ backgroundColor: '#4f6dff', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 }}>
               <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>확인</Text>
             </TouchableOpacity>
           </View>
