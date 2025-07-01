@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import Header from '../../components/ui/Header';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,16 +24,10 @@ export default function DiagnosisScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+       {/* 헤더 */}
+      <Header title="진단 결과" />
       <ScrollView style={styles.container}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>진단 결과</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
+       
         {/* 노란 프로필 카드 */}
         <ImageBackground
           source={require('../../assets/images/diagresult/그룹 5430.png')}

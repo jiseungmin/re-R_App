@@ -24,7 +24,7 @@ export default function LandingScreen() {
       <View style={styles.buttonGroup}>
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => router.push('/exercise')}
+          onPress={() => router.push('/mypage')}
         >
           <Text style={styles.primaryText}>둘러보기</Text>
         </TouchableOpacity>

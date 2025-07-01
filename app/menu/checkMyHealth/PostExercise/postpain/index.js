@@ -1,14 +1,7 @@
 // app/(tabs)/PainScaleScreen.js
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import PostOnePopup from '../../../../../components/popup/postonePopup';
 import Header from '../../../../../components/ui/Header';
 
 const CARD_PADDING = 16;
@@ -16,20 +9,21 @@ const CIRCLE_SIZE = 36;
 
 const QUESTIONS = [
   {
-    section: 'C. 압박통증',
+    section: 'A. 통증',
     items: [
       {
-        key: 'C1',
-        label: 'C1',
-        text: '수술 부위 혹은 주변부를 꾹 눌렀을 때 (손톱 끝이 하얘지도록) 통증이 어느 정도 인가요?',
-      },
+        key: 'A1',
+        label: 'A1',
+        text: '지금 무릎에 통증이 있나요? \n있다면 어느정도 인가요?',
+      }
     ],
   },
 ];
 
 export default function PainScaleScreen() {
-  const router = useRouter();
-  const [answers, setAnswers] = useState({ C1: null });
+  const [answers, setAnswers] = useState({ A1: null });
+  const [showPopup, setShowPopup] = useState(false);
+  
 
   const handleSelect = (key, value) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
@@ -63,35 +57,27 @@ export default function PainScaleScreen() {
     );
   };
 
-  const renderQuestionText = (text) => {
-    const keywords = ['시작', '중간', '마지막'];
-
-    let modifiedText = text;
-    keywords.forEach(keyword => {
-      modifiedText = modifiedText.replace(
-        keyword,
-        `<blue>${keyword}</blue>`
-      );
-    });
-
-    const parts = modifiedText.split(/<blue>|<\/blue>/);
-
-    return (
-      <Text style={styles.questionText}>
-        {parts.map((part, index) => (
-          <Text key={index} style={index % 2 === 1 ? styles.highlight : null}>
-            {part}
-          </Text>
-        ))}
-      </Text>
-    );
-  };
-
   const allAnswered = Object.values(answers).every(v => v !== null);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="통증 테스트" />
+
+      <Modal
+          visible={showPopup}
+           animationType="fade"
+              transparent
+              statusBarTranslucent
+              onRequestClose={() => setShowPopup(false)}
+            >
+              <View style={styles.popupOverlay}>
+                <View style={styles.popupContainer}>
+                  <PostOnePopup onStart={() => setShowPopup(false)} />
+                </View>
+              </View>   
+      </Modal>     
+      
+
+      <Header title="운동 후 무릎 상태 평가" />
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {QUESTIONS.map(section => (
@@ -102,23 +88,21 @@ export default function PainScaleScreen() {
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{q.label}</Text>
                 </View>
-                {renderQuestionText(q.text)}
+                <Text style={styles.questionText}>{q.text}</Text>
                 {renderOptions(q.key)}
               </View>
             ))}
           </React.Fragment>
         ))}
 
-         <TouchableOpacity
+        <TouchableOpacity
           style={[styles.nextButton, !allAnswered && styles.nextButtonDisabled]}
           disabled={!allAnswered}
-          onPress={() => router.push('/menu/checkMyHealth/FearTest')}
+          onPress={() => setShowPopup(true)}
         >
           <Text style={styles.nextButtonText}>다음</Text>
         </TouchableOpacity>
-
       </ScrollView>
-      
     </SafeAreaView>
   );
 }
@@ -152,7 +136,23 @@ const styles = StyleSheet.create({
   optionCircleSelected: { backgroundColor: '#4F6EFF', borderColor: '#4F6EFF' },
   optionText: { fontSize: 16, color: '#333' },
   optionTextSelected: { color: '#fff' },
-  nextButton: { height: 48, width: '80%', borderRadius: 20, backgroundColor: '#4F6EFF', alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 32 },
+  nextButton: { height: 48, width: '80%', borderRadius: 20, backgroundColor: '#4F6EFF', alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginBottom: 10},
   nextButtonDisabled: { backgroundColor: '#CACACA' },
   nextButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  popupOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  popupContainer: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
 });

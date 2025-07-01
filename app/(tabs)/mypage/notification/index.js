@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Header from '../../../../components/ui/Header';
 
 const offSwitch = require('../../../../assets/images/notification/그룹 5957.png');
 const onSwitch = require('../../../../assets/images/notification/그룹 5958.png');
@@ -54,16 +55,7 @@ export default function AlarmSettingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
-      <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => router.push('/mypage')}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Image source={ICON_PREVIOUS} style={styles.backIcon} />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>알림시간 설정</Text>
-              <View style={{ width: 24 }} />
-      </View>
+      <Header title="알림시간 설정" />
 
       {/* 본문 */}
       <ScrollView contentContainerStyle={styles.content}>

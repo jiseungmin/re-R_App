@@ -1,32 +1,31 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-export default function KneeAnglePopup({ onStart }) {
+export default function PostOnePopup({ onStart }) {
   return (
     <View style={styles.overlay}>
       <View style={styles.popup}>
         {/* 콘텐츠 영역 */}
         <View style={styles.content}>
           <Image
-            source={require('../../../../assets/images/그룹 4806.png')}
+            source={require('../../assets/images/healthcare_briefing.png')}
             style={styles.image}
           />
-          <Text style={styles.title}>〈무릎각도 측정〉</Text>
           <Text style={styles.desc}>
-            첫번째 검사로 <Text style={{ fontWeight: 'bold', color: '#007bff' }}>무릎각도</Text>를{'\n'}
-            측정해 보겠습니다.
+            진단정보를 저장했습니다.{'\n'}
+            2시간 뒤에 다시 설문이{'\n'} 
+            필요하오니, 알림을 받으시면{'\n'}설문에 참여해주십시오.
           </Text>
         </View>
 
         {/* 하단 버튼 */}
         <TouchableOpacity style={styles.buttonContainer} onPress={onStart}>
           <Image
-            source={require('../../../../assets/images/사각형 974.png')}
+            source={require('../../assets/images/사각형 974.png')}
             style={styles.buttonImage}
           />
-          <Text style={styles.buttonText}>시작하기</Text>
+          <Text style={styles.buttonText}>확인</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -54,7 +53,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    marginTop: 20,
   },
   image: {
     width: 120,
@@ -69,9 +67,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   desc: {
-    fontSize: 14,
+    marginTop:10,
+    fontSize: 18,
     color: '#333',
-    textAlign: 'center',
     lineHeight: 22,
   },
   buttonContainer: {

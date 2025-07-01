@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Dimensions,
@@ -13,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import PureChart from 'react-native-pure-chart';
+import Header from '../../components/ui/Header';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -23,16 +23,10 @@ export default function ResultScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView style={styles.container}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>평가검사 결과</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <Header title="평가검사 결과" />
 
+      <ScrollView style={styles.container}>
         {/* 사용자 카드 */}
         <ImageBackground
           source={require('../../assets/images/evalresult/그룹 5431.png')}

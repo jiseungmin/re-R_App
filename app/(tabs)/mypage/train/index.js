@@ -2,15 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Image,
   ImageBackground,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import Header from '../../../../components/ui/Header';
 
 const scoreBg = require('../../../../assets/images/mypage/trian/그룹 5431.png');
 const ICON_PREVIOUS = require('../../../../assets/images/mypage/previous_arrow.png');
@@ -58,17 +58,8 @@ export default function TrainingResult() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 고정 */}
       {/* 헤더 */}
-       <View style={styles.header}>
-         <TouchableOpacity
-                      onPress={() => router.push('/mypage')}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                   <Image source={ICON_PREVIOUS} style={styles.backIcon} />
-         </TouchableOpacity>
-                  <Text style={styles.headerTitle}>훈련 결과</Text>
-                    <View style={{ width: 24 }} />
-        </View>
+      <Header title="훈련 결과" />
 
       {/* 본문 스크롤 */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>

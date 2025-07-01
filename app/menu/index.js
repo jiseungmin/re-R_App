@@ -1,17 +1,16 @@
 // app/home/index.js
-import React from 'react';
+import { Stack, useRouter } from 'expo-router';
 import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
+  Dimensions,
   Image,
   ImageBackground,
-  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
-  Dimensions,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -56,7 +55,7 @@ export default function Menu() {
         {/* 첫 번째 항목 */}
         <TouchableOpacity
           style={styles.item}
-          onPress={() => router.push('/menu/checkMyHealth/HealthIntroCard')} // ← 이 부분 추가
+          onPress={() => router.push('/menu/checkMyHealth/HealthIntroCard')} 
         >
           <Image
             source={require('../../assets/images/그룹 5400.png')}
@@ -76,7 +75,10 @@ export default function Menu() {
         <View style={styles.divider} />
 
         {/* 두 번째 항목 (textWrap 추가) */}
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => router.push('/menu/checkMyHealth/PostExercise/postfever')} 
+        >
           <Image
             source={require('../../assets/images/그룹 4803.png')}
             style={styles.itemIcon}
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
   header: {
     width: SCREEN_WIDTH,
     height: undefined,
-    aspectRatio: 375 / 180,       // 원본 헤더 이미지 비율
+    aspectRatio: 375 / 180,      
     justifyContent: 'center',
     alignItems: 'center',
   },

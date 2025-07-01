@@ -1,16 +1,15 @@
-import React from 'react';
-import {
-  SafeAreaView,
-  View,
-  TouchableOpacity,
-  Image,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Platform,
-  StatusBar,
-} from 'react-native';
 import { useRouter } from 'expo-router';
+import {
+  Dimensions,
+  Image,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

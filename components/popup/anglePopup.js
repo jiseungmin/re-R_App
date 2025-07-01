@@ -2,7 +2,7 @@ import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'rea
 
 const { width } = Dimensions.get('window');
 
-export default function PainShowPopup({ onStart }) {
+export default function KneeAnglePopup({ onStart }) {
   return (
     <View style={styles.overlay}>
       <View style={styles.popup}>
@@ -12,10 +12,10 @@ export default function PainShowPopup({ onStart }) {
             source={require('../../assets/images/그룹 4806.png')}
             style={styles.image}
           />
-          <Text style={styles.title}>〈통증 테스트〉</Text>
+          <Text style={styles.title}>〈무릎각도 측정〉</Text>
           <Text style={styles.desc}>
-            두번째 검사로 <Text style={{ fontWeight: 'bold', color: '#007bff' }}>통증 테스트</Text>를{'\n'}
-            평가해 보겠습니다.
+            첫번째 검사로 <Text style={{ fontWeight: 'bold', color: '#007bff' }}>무릎각도</Text>를{'\n'}
+            측정해 보겠습니다.
           </Text>
         </View>
 
