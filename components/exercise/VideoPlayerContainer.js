@@ -26,9 +26,9 @@ export default function VideoPlayerContainer({
   const [playCount, setPlayCount] = useState(0);
 
   const phaseOrder = [
-    ...(prepTime > 0 ? [{ key: 'prep', label: '준비', duration: prepTime +3}] : []),
+    ...(prepTime > 0 ? [{ key: 'prep', label: '준비', duration: prepTime +2}] : []),
     ...(stayTime > 0 ? [{ key: 'stay', label: '유지', duration: stayTime }] : []),
-    ...(cooldownTime > 0 ? [{ key: 'cooldown', label: '마무리', duration: cooldownTime+2 }] : []),
+    ...(cooldownTime > 0 ? [{ key: 'cooldown', label: '마무리', duration: cooldownTime +2}] : []),
   ];
   
   // phaseOrder가 비어있으면 기본값 설정
