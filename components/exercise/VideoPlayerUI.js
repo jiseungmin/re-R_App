@@ -1,15 +1,6 @@
 import { VideoView } from 'expo-video';
 import React from 'react';
 import {
-<<<<<<< HEAD
-    Dimensions,
-    Image,
-    ImageBackground,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-=======
   Dimensions,
   Image,
   ImageBackground,
@@ -17,7 +8,6 @@ import {
   Text,
   TouchableOpacity,
   View,
->>>>>>> feature/exercise
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ExercisePauseOverlay from './ExercisePauseOverlay';

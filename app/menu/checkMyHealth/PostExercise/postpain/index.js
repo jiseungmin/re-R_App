@@ -1,4 +1,5 @@
 // app/(tabs)/PainScaleScreen.js
+import { useNavigation } from 'expo-router';
 import React, { useState } from 'react';
 import { Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import PostOnePopup from '../../../../../components/popup/postonePopup';
@@ -23,6 +24,7 @@ const QUESTIONS = [
 export default function PainScaleScreen() {
   const [answers, setAnswers] = useState({ A1: null });
   const [showPopup, setShowPopup] = useState(false);
+  const navigation = useNavigation();
   
 
   const handleSelect = (key, value) => {
@@ -71,7 +73,10 @@ export default function PainScaleScreen() {
             >
               <View style={styles.popupOverlay}>
                 <View style={styles.popupContainer}>
-                  <PostOnePopup onStart={() => setShowPopup(false)} />
+                  <PostOnePopup onStart={() => {
+                    setShowPopup(false);
+                    navigation.navigate('(tabs)');
+                  }} />
                 </View>
               </View>   
       </Modal>     

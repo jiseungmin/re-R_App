@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -7,8 +7,11 @@ export default function StepProgressBar({
   currentPhase,
   phaseElapsed,
   barWidth = 340,
+  resetKey,
+  paused,
+  stopped,
 }) {
-  const [anims, setAnims] = useState(() => phases.map(() => new Animated.Value(0)));
+  const animsRef = useRef(phases.map(() => new Animated.Value(0)));
   const animationRefs = useRef(phases.map(() => null));
   
   // divider 관련 상수
@@ -20,31 +23,65 @@ export default function StepProgressBar({
   // 전체 시간 계산
   const totalDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
   
-  // 각 phase별 진행률 계산
+  // phases가 바뀌면 animsRef를 새로 생성
   useEffect(() => {
-    if (phases.length === 0) return;
+    console.log('[StepProgressBar] 마운트/업데이트', { currentPhase, phaseElapsed, resetKey });
+    animsRef.current = phases.map(() => new Animated.Value(0));
+    animationRefs.current = phases.map(() => null);
+    return () => {
+      console.log('[StepProgressBar] 언마운트/cleanup', { currentPhase, phaseElapsed, resetKey, animationRefs: animationRefs.current, anims: animsRef.current });
+      if (Array.isArray(animationRefs.current)) {
+        animationRefs.current.forEach(a => a?.stop && a.stop());
+      }
+      if (Array.isArray(animsRef.current)) {
+        animsRef.current.forEach(v => v && v.stopAnimation && v.stopAnimation());
+      }
+    };
+  }, [phases.length, resetKey]);
+  
+  useEffect(() => {
+    console.log('[StepProgressBar] useEffect 트리거', { currentPhase, phaseElapsed, resetKey, paused, stopped });
+    if (paused || stopped) {
+      console.log('[StepProgressBar] cleanup (pause/stop/skip)', { currentPhase, phaseElapsed, resetKey, animationRefs: animationRefs.current, anims: animsRef.current });
+      animationRefs.current.forEach(a => a?.stop && a.stop());
+      animsRef.current.forEach(v => v && v.stopAnimation && v.stopAnimation());
+      return;
+    }
     phases.forEach((phase, idx) => {
       let value = 0;
+      let animDuration = 1000;
       if (phase.key === currentPhase) {
-        value = Math.max(0, Math.min(1, phaseElapsed / phase.duration));
-      } else if (phases.findIndex(p => p.key === phase.key) < phases.findIndex(p => p.key === currentPhase)) {
+        const cappedElapsed = Math.min(phaseElapsed, phase.duration);
+        value = Math.max(0, cappedElapsed / phase.duration);
+        if (phaseElapsed >= phase.duration) {
+          animDuration = 0;
+        }
+      } else if (
+        phases.findIndex(p => p.key === phase.key)
+        < phases.findIndex(p => p.key === currentPhase)
+      ) {
         value = 1;
+        animDuration = 0;
       }
-      // 애니메이션 적용
       if (animationRefs.current[idx]) {
         animationRefs.current[idx].stop();
       }
-      const animation = Animated.timing(anims[idx], {
+      const animation = Animated.timing(animsRef.current[idx], {
         toValue: value,
-        duration: 1000,
+        duration: animDuration,
         useNativeDriver: false,
         easing: Easing.linear,
       });
       animationRefs.current[idx] = animation;
       animation.start();
     });
-  }, [phases, currentPhase, phaseElapsed]);
-
+    return () => {
+      console.log('[StepProgressBar] 언마운트/cleanup', { currentPhase, phaseElapsed, resetKey, animationRefs: animationRefs.current, anims: animsRef.current });
+      animationRefs.current.forEach(anim => anim?.stop());
+      animsRef.current.forEach(v => v.stopAnimation && v.stopAnimation());
+    };
+  }, [phases, currentPhase, phaseElapsed, resetKey, paused, stopped]);
+  
   if (!phases || phases.length === 0) return null;
 
   return (
@@ -58,7 +95,7 @@ export default function StepProgressBar({
               style={[
                 styles.progressBar,
                 {
-                  width: anims[idx].interpolate({
+                  width: animsRef.current[idx].interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, segmentWidth],
                   }),

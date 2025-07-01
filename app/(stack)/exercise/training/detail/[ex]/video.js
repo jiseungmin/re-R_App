@@ -15,6 +15,7 @@ export default function VideoScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const [showComplete, setShowComplete] = useState(false);
+  const [skipUnmount, setSkipUnmount] = useState(false); // skip 시 언마운트용 상태 추가
 
   // 다음 설명 페이지로 이동 (자동)
   const goNextDetail = () => {
@@ -39,6 +40,7 @@ export default function VideoScreen() {
         {
           text: '확인',
           onPress: () => {
+            setSkipUnmount(true); // skip 시 언마운트 트리거
             const next = idx + 1;
             const nextSkipped = [...skipped, idx];
             if (next >= EXERCISES.length) {
@@ -64,14 +66,17 @@ export default function VideoScreen() {
   // 5분 카운트 타이머 컴포넌트
   function FiveMinTimer({ onComplete }) {
     const [seconds, setSeconds] = useState(300);
+    const [paused, setPaused] = useState(false);
+    const [stopped, setStopped] = useState(false);
     useEffect(() => {
+      if (paused || stopped) return;
       if (seconds <= 0) {
         if (onComplete) onComplete();
         return;
       }
       const timer = setInterval(() => setSeconds(s => s - 1), 1000);
       return () => clearInterval(timer);
-    }, [seconds]);
+    }, [seconds, paused, stopped]);
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
     // 영상 영역에만 시간 표시
@@ -83,20 +88,20 @@ export default function VideoScreen() {
           currentSet={1}
           repsPerSet={1}
           totalSets={1}
-          paused={false}
-          stopped={false}
-          setPaused={() => {}}
-          setStopped={() => {}}
+          paused={paused}
+          stopped={stopped}
+          setPaused={setPaused}
+          setStopped={setStopped}
           onSkip={handleSkip}
           insets={insets}
           pauseOverlayData={pauseOverlayData}
-          handleResume={() => {}}
+          handleResume={() => setPaused(false)}
           handleHome={() => navigation.navigate('(tabs)', { screen: 'exercise' })}
           handleCallClinic={() => {}}
           handleCall119={() => {}}
-          closeStopOverlay={() => {}}
-          togglePlay={() => {}}
-          handleStop={() => {}}
+          closeStopOverlay={() => setStopped(false)}
+          togglePlay={() => setPaused(prev => !prev)}
+          handleStop={() => setStopped(true)}
           currentPhase={'prep'}
           phaseElapsed={300 - seconds}
           phaseDuration={300}
@@ -125,6 +130,7 @@ export default function VideoScreen() {
 
   // video가 없으면 5분 타이머만 보여주기
   if (!exercise.video) {
+    if (skipUnmount) return null; // skip 시 언마운트
     return <FiveMinTimer onComplete={goNextDetail} />;
   }
 
