@@ -27,7 +27,7 @@ export default function StepProgressBar({
       }
       Animated.timing(anims[idx], {
         toValue: value,
-        duration: 150,
+        duration: 1000,
         useNativeDriver: false,
       }).start();
     });

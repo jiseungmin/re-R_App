@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import { Animated, StyleSheet, View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COLLAPSED_HEIGHT = SCREEN_HEIGHT * 0.29; // 닫혔을 때(23%)
@@ -8,6 +9,7 @@ const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.8;   // 열렸을 때(80%)
 export default function SlideUpPrescriptionPanel({
   isOpen, surgeryInfo, exercisePlans, prescription, togglePanel, onStartExercise
 }) {
+  const router = useRouter();
   // height Animated Value
   const heightAnim = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
 
@@ -47,7 +49,16 @@ export default function SlideUpPrescriptionPanel({
                   <View style={[styles.progressBarFG, { width: `${item.progress}%` }]} />
                 </View>
               </View>
-              <TouchableOpacity style={styles.exerciseBtn} onPress={() => onStartExercise(item)}>
+              <TouchableOpacity
+                style={styles.exerciseBtn}
+                onPress={() => {
+                  if (item.title.includes('관절각도 증진 훈련')) {
+                    router.push('exercise/angle-training');
+                  } else {
+                    onStartExercise(item);
+                  }
+                }}
+              >
                 <Image
                   source={require('../../assets/images/사각형 2181.png')}
                   style={styles.exerciseBtnImg}

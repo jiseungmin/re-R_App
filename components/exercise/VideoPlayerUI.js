@@ -1,17 +1,17 @@
+import { VideoView } from 'expo-video';
 import React from 'react';
 import {
-  View,
-  TouchableOpacity,
-  Text,
-  ImageBackground,
-  Image,
-  StyleSheet,
-  Dimensions,
+    Dimensions,
+    Image,
+    ImageBackground,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ExercisePauseOverlay from './ExercisePauseOverlay';
 import ExerciseStopOverlay from './ExerciseStopOverlay';
-import { VideoView } from 'expo-video';
 import StepProgressBar from './StepProgressBar';
 
 const { width } = Dimensions.get('window');
@@ -41,6 +41,8 @@ export default function VideoPlayerUI({
   phaseElapsed,
   phaseDuration,
   phases, // 동적으로 내려줌
+  children, // 추가
+  skipDisabled, // 추가
 }) {
   return (
     <SafeAreaView style={styles.container}>
@@ -54,6 +56,7 @@ export default function VideoPlayerUI({
             nativeControls={false}
           />
         )}
+        {children}
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
@@ -70,11 +73,13 @@ export default function VideoPlayerUI({
         pointerEvents="box-none"
       >
         {/* 좌측: Skip */}
-        <TouchableOpacity onPress={onSkip} style={styles.skipBtnWrap}>
-          <View style={styles.skipBtn}>
-            <Text style={styles.skipBtnText}>Skip</Text>
-          </View>
-        </TouchableOpacity>
+        {!skipDisabled && (
+          <TouchableOpacity onPress={onSkip} style={styles.skipBtnWrap}>
+            <View style={styles.skipBtn}>
+              <Text style={styles.skipBtnText}>Skip</Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* 중앙: 단계 게이지 + set/rep */}
         <View style={styles.centerOverlay}>

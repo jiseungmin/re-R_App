@@ -1,12 +1,16 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView, StyleSheet, View, Text, TouchableOpacity, ImageBackground, Dimensions, Alert,
+  Alert,
+  Dimensions,
+  ImageBackground,
+  SafeAreaView, StyleSheet,
+  Text, TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BlackHeader from '../../../../../components/ui/BlackHeader';
-import { EXERCISES } from '../../../../../constants/Exercises_info';
 import CountdownOverlay from '../../../../../components/popup/CountdownOverlay';
+import { EXERCISES } from '../../../../../constants/Exercises_info';
 
 const { width } = Dimensions.get('window');
 
@@ -72,7 +76,6 @@ export default function Detail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BlackHeader />
       <View style={styles.body}>
         <Text style={styles.title}>{`${step + 1}. ${exercise.title}`}</Text>
         <View style={styles.descBox}>
@@ -101,18 +104,29 @@ export default function Detail() {
   );
 }
 
-// styles 그대로
-
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   body: { flex: 1, padding: 16, justifyContent: 'center' },
+  stepText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff', // ✅ 글씨 색상 복원
+    color: '#00FF66', // 초록색
     marginBottom: 16,
     textAlign: 'center',
+  },
+  descBox: {
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    marginBottom: 24,
   },
   descHeader: {
     fontSize: 18,
@@ -122,10 +136,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   descText: {
-    color: '#ccc',
+    color: '#fff',
     fontSize: 16,
-    marginBottom: 4,
-    textAlign: 'center',
+    marginBottom: 8,
+    textAlign: 'left',
   },
   startWrap: {
     position: 'absolute',
