@@ -1,10 +1,11 @@
 import { Buffer } from 'buffer';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
   Button,
-  Dimensions, FlatList, Image, ImageBackground, Modal,
+  Dimensions, FlatList, Image, ImageBackground,
   PermissionsAndroid, Platform,
   SafeAreaView,
   ScrollView,
@@ -20,6 +21,7 @@ const CHAR_UUID_WRITE  = "0000FFF2-0000-1000-8000-00805F9B34FB";
 const globalManager = new BleManager();
 
 export default function Device() {
+  const router = useRouter();
   const [devices, setDevices] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
@@ -179,7 +181,6 @@ export default function Device() {
   useEffect(() => { if (scanning) runStutterSpin(); }, [scanning]);
   const spin = spinValue.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'] });
 
-  // UI (device 스타일)
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground source={require('../../../assets/images/그룹 5312.png')} style={styles.header} imageStyle={styles.headerBg}>
@@ -193,49 +194,41 @@ export default function Device() {
         <Image source={require('../../../assets/images/mobile.png')} style={styles.phoneIcon} resizeMode="contain" />
       </ImageBackground>
 
-      {/* 연결 성공 시 디바이스 정보 화면 */}
+      {/* 연결 성공 시 카드형 UI */}
       {connected ? (
-        <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-          <View style={{backgroundColor:'#f7f7f7', borderRadius:16, padding:24, width:'90%', alignItems:'center', marginTop:32}}>
-            <View style={{flexDirection:'row', alignItems:'center', width:'100%', justifyContent:'space-between', marginBottom:12}}>
-              <View style={{flexDirection:'row', alignItems:'center'}}>
-                <View style={{width:10, height:10, borderRadius:5, backgroundColor:'#22c55e', marginRight:6}} />
-                <Text style={{fontWeight:'bold'}}>연결됨</Text>
-              </View>
-              <View style={{flexDirection:'row', gap:8}}>
-                <TouchableOpacity style={{backgroundColor:'#FFB84D', borderRadius:8, paddingHorizontal:12, paddingVertical:4, marginRight:8}}>
-                  <Text style={{color:'#fff', fontWeight:'bold'}}>보정</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={{backgroundColor:'#FF6B6B', borderRadius:8, paddingHorizontal:12, paddingVertical:4}} onPress={()=>{setConnected(null); setShowControl(false);}}>
-                  <Text style={{color:'#fff', fontWeight:'bold'}}>연결해제</Text>
-                </TouchableOpacity>
-              </View>
+        <View style={styles.connectedContainer}>
+          <View style={styles.infoCard}>
+            <View style={styles.statusRow}>
+              <View style={styles.connectedIndicator}><Text style={styles.connectedText}>연결됨</Text></View>
+              <TouchableOpacity style={styles.disconnectButton} onPress={() => { setConnected(null); setShowControl(false); }}>
+                <Text style={styles.disconnectText}>연결해제</Text>
+              </TouchableOpacity>
             </View>
-            <Image source={require('../../../assets/images/그룹 5769.png')} style={{width:160, height:160, marginVertical:12}} resizeMode="contain" />
-            <Text style={{fontSize:18, fontWeight:'bold', marginBottom:4}}>{connected.name || '(No Name)'}</Text>
-            <Text style={{fontSize:13, color:'#888', marginBottom:16}}>{connected.id}</Text>
-            <TouchableOpacity style={{borderWidth:2, borderColor:'#1a237e', borderRadius:10, paddingVertical:12, paddingHorizontal:24, marginTop:8, width:'100%'}} onPress={()=>{
-              // 튜토리얼 화면 이동 구현 필요 (navigation)
-            }}>
-              <Text style={{fontSize:18, fontWeight:'bold', textAlign:'center'}}>기기 착용 방법 확인</Text>
-            </TouchableOpacity>
+            <Image source={require('../../../assets/images/그룹 5769.png')} style={styles.deviceImage} resizeMode="contain" />
+            <Text style={styles.deviceName}>{connected.name || '(No Name)'}</Text>
+            <Text style={styles.deviceId}>{connected.id}</Text>
 
-            {/* 연결 테스트 버튼 */}
+            {/* 패킷 정보 */}
+            <ScrollView style={styles.packetContainer}>
+              <Text style={styles.packetLabel}>패킷(raw): {rawData}</Text>
+              <Text style={styles.packetText}>모드: {mode !== null ? `${mode} (0x${mode.toString(16)})` : '-'}</Text>
+              <Text style={styles.packetText}>Flexion: {flexion !== null ? `${flexion}°` : '-'}</Text>
+              <Text style={styles.packetText}>Extension: {extension !== null ? `${extension}°` : '-'}</Text>
+            </ScrollView>
+
+            {/* 제어 버튼 */}
+            <View style={styles.controlRow}>
+              <Button title="START" onPress={sendStart} disabled={!writeChar}/>
+              <View style={{ width: 12 }} />
+              <Button title="STOP" onPress={sendStop} disabled={!writeChar}/>
+            </View>
+
+            {/* 기기 착용 방법 확인 버튼 */}
             <TouchableOpacity
-              style={{borderWidth:2, borderColor:'#22c55e', borderRadius:10, paddingVertical:12, paddingHorizontal:24, marginTop:16, width:'100%', backgroundColor:'#e6f9f0'}}
-              onPress={async () => {
-                try {
-                  await sendStart();
-                  setTimeout(async () => {
-                    await sendStop();
-                  }, 1000);
-                } catch (e) {
-                  Alert.alert('연결 테스트 실패', e?.message || '오류');
-                }
-              }}
-              disabled={!writeChar}
+              style={{borderWidth:2, borderColor:'#1a237e', borderRadius:10, paddingVertical:12, paddingHorizontal:24, marginTop:16, width:'100%'}}
+              onPress={() => router.push('device/tutorial')}
             >
-              <Text style={{fontSize:18, fontWeight:'bold', textAlign:'center', color:'#22c55e'}}>연결 테스트</Text>
+              <Text style={{fontSize:18, fontWeight:'bold', textAlign:'center'}}>기기 착용 방법 확인</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -274,53 +267,6 @@ export default function Device() {
           </ImageBackground>
         )
       )}
-
-      {/* 데이터 출력 */}
-      {connected && (
-        <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 140 }}>
-          <Text style={{ fontWeight: 'bold' }}>패킷(raw): {rawData}</Text>
-          {mode !== null && (
-            <View style={{marginTop:6}}>
-              <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
-              <Text>Flexion(구부림): {flexion} 도</Text>
-              <Text>Extension(펴짐): {extension} 도</Text>
-            </View>
-          )}
-        </ScrollView>
-      )}
-
-      <Modal
-        visible={showControl}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowControl(false)}
-      >
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(0,0,0,0.2)'
-        }}>
-          <View style={{
-            backgroundColor: '#fff', padding: 24, borderRadius: 14, minWidth: 260, alignItems: 'center'
-          }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>BLE 장치 제어</Text>
-            {/* 실시간 각도/모드 출력 */}
-            {mode !== null && (
-              <View style={{marginBottom: 12, alignItems: 'center'}}>
-                <Text>모드: {mode} ({'0x'+mode.toString(16)})</Text>
-                <Text>Flexion(구부림): {flexion} 도</Text>
-                <Text>Extension(펴짐): {extension} 도</Text>
-              </View>
-            )}
-            <Button title="START 명령 전송" onPress={sendStart} disabled={!writeChar}/>
-            <View style={{ height: 8 }} />
-            <Button title="STOP 명령 전송" onPress={sendStop} disabled={!writeChar}/>
-            <View style={{ height: 14 }} />
-            <Button title="닫기" color="#aaa" onPress={() => setShowControl(false)} />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -344,4 +290,46 @@ const styles = StyleSheet.create({
   deviceInfo: { flex: 1 },
   deviceName: { fontSize: 14, fontWeight: '500', color: '#333' },
   deviceAddress: { fontSize: 10, color: '#666', marginTop: 2 },
+  connectedContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  infoCard: {
+    backgroundColor: '#f7f7f7',
+    borderRadius: 16,
+    padding: 10,
+    width: '90%',
+    alignItems: 'center'
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 12,
+    alignItems: 'center'
+  },
+  connectedIndicator: { flexDirection: 'row', alignItems: 'center' },
+  connectedText: { fontWeight: 'bold', color: '#22c55e' },
+  disconnectButton: { backgroundColor: '#FF6B6B', padding: 6, borderRadius: 6 },
+  disconnectText: { color: '#fff', fontWeight: 'bold' },
+  deviceImage: { width: 160, height: 160, marginVertical: 12 },
+  deviceId: { fontSize: 13, color: '#888', marginBottom: 16 },
+  packetContainer: {
+    width: '100%',
+    maxHeight: 100,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    borderColor: '#aaa',
+    borderWidth: 1,
+    marginBottom: 16
+  },
+  packetLabel: { fontWeight: 'bold', marginBottom: 4 },
+  packetText: { fontSize: 14 },
+  controlRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%'
+  }
 });
