@@ -14,7 +14,7 @@ export default function Exercise() {
   //'slide', 'measure', 'consult'
   const [isOpen, setIsOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const [panelOpen, setPanelOpen] = useState(false); // 기본값을 false로!
+  const [panelOpen, setPanelOpen] = useState(false);
 
   // (슬라이드 패널) 패널 토글
   const togglePanel = () => {
@@ -38,7 +38,7 @@ export default function Exercise() {
         source={require('../../../assets/images/group5805.png')}
         style={styles.header}
         imageStyle={styles.headerBgImage}
-      >
+      > 
         <View style={styles.menuWithText}>
           <TouchableOpacity onPress={() => router.push('/menu')}>
             <ImageBackground
@@ -46,6 +46,9 @@ export default function Exercise() {
               style={styles.menuIcon}
               resizeMode="contain"
             />
+      {/* <TouchableOpacity onPress={() => router.push('/exercise/tutorial')} style={{margin: 16, padding: 12, backgroundColor: '#2196F3', borderRadius: 8}}>
+        <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>튜토리얼 보기</Text>
+      </TouchableOpacity> */}
           </TouchableOpacity>
           <Text style={styles.headerText}>홍길동님의, {'\n'}건강한 하루를 응원해요!</Text>
         </View>
@@ -61,6 +64,8 @@ export default function Exercise() {
         style={styles.mainImg}
         resizeMode="contain"
       />
+
+     
 
        <BottomPanel
         type={bottomPanelType}

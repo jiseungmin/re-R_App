@@ -192,42 +192,91 @@ export default function Device() {
         </View>
         <Image source={require('../../../assets/images/mobile.png')} style={styles.phoneIcon} resizeMode="contain" />
       </ImageBackground>
-      {scanning ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text>기기 검색 중...</Text>
+
+      {/* 연결 성공 시 디바이스 정보 화면 */}
+      {connected ? (
+        <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+          <View style={{backgroundColor:'#f7f7f7', borderRadius:16, padding:24, width:'90%', alignItems:'center', marginTop:32}}>
+            <View style={{flexDirection:'row', alignItems:'center', width:'100%', justifyContent:'space-between', marginBottom:12}}>
+              <View style={{flexDirection:'row', alignItems:'center'}}>
+                <View style={{width:10, height:10, borderRadius:5, backgroundColor:'#22c55e', marginRight:6}} />
+                <Text style={{fontWeight:'bold'}}>연결됨</Text>
+              </View>
+              <View style={{flexDirection:'row', gap:8}}>
+                <TouchableOpacity style={{backgroundColor:'#FFB84D', borderRadius:8, paddingHorizontal:12, paddingVertical:4, marginRight:8}}>
+                  <Text style={{color:'#fff', fontWeight:'bold'}}>보정</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{backgroundColor:'#FF6B6B', borderRadius:8, paddingHorizontal:12, paddingVertical:4}} onPress={()=>{setConnected(null); setShowControl(false);}}>
+                  <Text style={{color:'#fff', fontWeight:'bold'}}>연결해제</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Image source={require('../../../assets/images/그룹 5769.png')} style={{width:160, height:160, marginVertical:12}} resizeMode="contain" />
+            <Text style={{fontSize:18, fontWeight:'bold', marginBottom:4}}>{connected.name || '(No Name)'}</Text>
+            <Text style={{fontSize:13, color:'#888', marginBottom:16}}>{connected.id}</Text>
+            <TouchableOpacity style={{borderWidth:2, borderColor:'#1a237e', borderRadius:10, paddingVertical:12, paddingHorizontal:24, marginTop:8, width:'100%'}} onPress={()=>{
+              // 튜토리얼 화면 이동 구현 필요 (navigation)
+            }}>
+              <Text style={{fontSize:18, fontWeight:'bold', textAlign:'center'}}>기기 착용 방법 확인</Text>
+            </TouchableOpacity>
+
+            {/* 연결 테스트 버튼 */}
+            <TouchableOpacity
+              style={{borderWidth:2, borderColor:'#22c55e', borderRadius:10, paddingVertical:12, paddingHorizontal:24, marginTop:16, width:'100%', backgroundColor:'#e6f9f0'}}
+              onPress={async () => {
+                try {
+                  await sendStart();
+                  setTimeout(async () => {
+                    await sendStop();
+                  }, 1000);
+                } catch (e) {
+                  Alert.alert('연결 테스트 실패', e?.message || '오류');
+                }
+              }}
+              disabled={!writeChar}
+            >
+              <Text style={{fontSize:18, fontWeight:'bold', textAlign:'center', color:'#22c55e'}}>연결 테스트</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
-        <ImageBackground source={require('../../../assets/images/사각형 2154.png')} style={styles.listBg} imageStyle={styles.listRadius}>
-          <FlatList
-            data={devices}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.cardBg,
-                ]}
-                onPress={() => connect(item)}
-                activeOpacity={0.7}
-                disabled={!!connectingId}
-              >
-                <View style={styles.deviceCard}>
-                  <Image source={require('../../../assets/images/phone.png')} style={styles.deviceIcon} />
-                  <View style={styles.deviceInfo}>
-                    <Text style={styles.deviceName}>{item.name || '(No Name)'}</Text>
-                    <Text style={styles.deviceAddress}>{item.id}</Text>
-                    {connectingId === item.id && <Text style={{color:'#34d399'}}>연결 중...</Text>}
+        scanning ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text>기기 검색 중...</Text>
+          </View>
+        ) : (
+          <ImageBackground source={require('../../../assets/images/사각형 2154.png')} style={styles.listBg} imageStyle={styles.listRadius}>
+            <FlatList
+              data={devices}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.cardBg,
+                  ]}
+                  onPress={() => connect(item)}
+                  activeOpacity={0.7}
+                  disabled={!!connectingId}
+                >
+                  <View style={styles.deviceCard}>
+                    <Image source={require('../../../assets/images/phone.png')} style={styles.deviceIcon} />
+                    <View style={styles.deviceInfo}>
+                      <Text style={styles.deviceName}>{item.name || '(No Name)'}</Text>
+                      <Text style={styles.deviceAddress}>{item.id}</Text>
+                      {connectingId === item.id && <Text style={{color:'#34d399'}}>연결 중...</Text>}
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={<Text style={{ textAlign:'center', marginTop:24 }}>기기를 찾을 수 없습니다.</Text>}
-          />
-        </ImageBackground>
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.listContent}
+              ListEmptyComponent={<Text style={{ textAlign:'center', marginTop:24 }}>기기를 찾을 수 없습니다.</Text>}
+            />
+          </ImageBackground>
+        )
       )}
 
-         {/* 데이터 출력 */}
-         {connected && (
+      {/* 데이터 출력 */}
+      {connected && (
         <ScrollView style={{ margin: 20, padding: 10, borderWidth: 1, borderColor: '#aaa', borderRadius: 8, maxHeight: 140 }}>
           <Text style={{ fontWeight: 'bold' }}>패킷(raw): {rawData}</Text>
           {mode !== null && (
